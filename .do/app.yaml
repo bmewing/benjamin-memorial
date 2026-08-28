@@ -12,6 +12,14 @@
 name: benjamin-memorial
 region: nyc
 
+# Keep this list complete. `doctl apps update --spec` REPLACES the whole app
+# config, so a domain that is not named here gets removed from the live app
+# even though nothing in the command mentions domains.
+domains:
+  - domain: benjaminmarkewing2.com
+    type: PRIMARY
+    zone: benjaminmarkewing2.com
+
 services:
   - name: web
     source_dir: /app
