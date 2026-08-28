@@ -1,17 +1,22 @@
 # Benjamin's memorial photo collection
 
-Two small services that gather photos of Benjamin into one private
-DigitalOcean Spaces bucket:
+One small service that gathers photos of Benjamin into one private
+DigitalOcean Spaces bucket, two ways in:
 
 | | |
 |---|---|
-| `webpage/` | The page people visit to upload photos and videos, plus a gallery of what's come in. |
-| `twilio/` | Receives picture messages sent to the memorial phone number and files them into the same bucket. |
+| `/` | The page people visit to upload photos and videos, plus a gallery of what's come in. |
+| `/twilio/sms` | Where Twilio posts picture messages sent to the memorial phone number. |
+
+| | |
+|---|---|
+| `app/` | The service. `web.py` is the page and its API, `sms.py` the webhook, `storage.py` the bucket. |
 | `scripts/` | One-time bucket setup, and a downloader so you always hold your own copy. |
 
-Both deploy as components of a single DigitalOcean App. The bucket is
-**private** — nothing is publicly listable or guessable. The gallery works by
-handing out links that expire after a few hours.
+It runs as a single DigitalOcean App component — $5/month, plus $5 for the
+Spaces bucket. The bucket is **private**: nothing is publicly listable or
+guessable, and the gallery works by handing out links that expire after a few
+hours.
 
 ---
 
@@ -38,8 +43,14 @@ name **`benjamin-memorial`**, file listing **Restricted**.
 
 ### 2. Make a key scoped to it
 
-**Spaces → Access Keys → Generate New Key**, limited to `benjamin-memorial`
-with read/write. Copy both halves — the secret is shown only once.
+Limited to this one bucket, so it can't touch anything else in the account:
+
+```bash
+doctl --context personal spaces keys create benjamin-memorial-app   --grants 'bucket=benjamin-memorial;permission=readwrite'
+```
+
+Copy both halves — the secret is shown only once. (Or do the same in the
+console under **Spaces → Access Keys**.)
 
 ### 3. Fill in `.env`
 
@@ -49,6 +60,10 @@ cp .env.example .env
 
 Paste the Spaces key/secret and your Twilio SID, auth token, and number.
 `.env` is gitignored and must never be committed.
+
+`SPACES_ENDPOINT` is the **region** endpoint, `https://nyc3.digitaloceanspaces.com`
+— not the bucket's own URL. boto3 prepends the bucket name itself, so giving it
+`benjamin-memorial.nyc3...` would resolve to the bucket name twice and fail.
 
 ### 4. Apply the CORS rule
 
@@ -67,8 +82,11 @@ deployed, to narrow it from `*` to just your site.
 Push this repo to GitHub, then:
 
 ```bash
-doctl apps create --spec .do/app.yaml
+doctl --context personal apps create --spec .do/app.yaml
 ```
+
+The `--context personal` matters if you also have a work DigitalOcean account
+— see `doctl auth list`.
 
 Set `SPACES_KEY`, `SPACES_SECRET`, `TWILIO_ACCOUNT_SID`, and
 `TWILIO_AUTH_TOKEN` as encrypted values in the app's settings — they are
@@ -82,9 +100,9 @@ In the Twilio console, open your number and set **A message comes in** to:
 https://<your-app>.ondigitalocean.app/twilio/sms      (HTTP POST)
 ```
 
-App Platform strips the `/twilio` prefix before the request reaches the
-service, which is why `PUBLIC_BASE_URL` in the spec ends in `/twilio` — the
-signature check has to rebuild the exact URL Twilio signed.
+`PUBLIC_BASE_URL` is just the app's root URL. Behind App Platform's proxy the
+scheme on the incoming request is `http`, so the signature check rebuilds the
+`https` URL Twilio actually signed from that base plus the request path.
 
 ---
 
@@ -92,9 +110,9 @@ signature check has to rebuild the exact URL Twilio signed.
 
 ```bash
 uv venv .venv
-uv pip install --python .venv/Scripts/python.exe -r webpage/requirements.txt
+uv pip install --python .venv/Scripts/python.exe -r app/requirements.txt
 
-cd webpage && ../.venv/Scripts/python.exe -m uvicorn main:app --port 8099
+cd app && ../.venv/Scripts/python.exe -m uvicorn main:app --port 8099
 ```
 
 Then open http://127.0.0.1:8099.

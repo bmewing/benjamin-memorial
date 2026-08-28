@@ -13,7 +13,7 @@ import re
 from datetime import datetime, timezone
 
 import httpx
-from fastapi import FastAPI, Form, Request
+from fastapi import APIRouter, Request
 from fastapi.responses import PlainTextResponse, Response
 from twilio.request_validator import RequestValidator
 
@@ -38,7 +38,7 @@ REPLY_NO_MEDIA = (
     "just send it as a picture message to this number."
 )
 
-app = FastAPI(title="Benjamin Memorial - SMS intake")
+router = APIRouter()
 
 
 def _twiml(message: str) -> Response:
@@ -68,17 +68,14 @@ async def _valid_signature(request: Request, form: dict[str, str]) -> bool:
         return False
     signature = request.headers.get("X-Twilio-Signature", "")
     # Behind App Platform's proxy the scheme on request.url is http, so build
-    # the URL Twilio actually signed from the configured public base.
+    # the URL Twilio actually signed from the configured public base. The path
+    # already carries the /twilio prefix -- nothing strips it now that this is
+    # one app -- so PUBLIC_BASE_URL is just the app root.
     url = f"{PUBLIC_BASE_URL}{request.url.path}" if PUBLIC_BASE_URL else str(request.url)
     return RequestValidator(AUTH_TOKEN).validate(url, form, signature)
 
 
-@app.get("/health")
-async def health() -> dict[str, str]:
-    return {"status": "ok", "bucket": storage.BUCKET}
-
-
-@app.post("/sms")
+@router.post("/twilio/sms")
 async def sms(request: Request) -> Response:
     form = {k: str(v) for k, v in (await request.form()).items()}
 

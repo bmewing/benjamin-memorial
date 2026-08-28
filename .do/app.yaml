@@ -1,21 +1,20 @@
 # DigitalOcean App Platform spec for Benjamin's memorial collection.
 #
-# Two components, one bucket:
-#   web -> the upload page, served at /
-#   sms -> the Twilio webhook, served at /twilio (Twilio posts to /twilio/sms)
+# One service, one bucket:
+#   /            the upload page and gallery
+#   /twilio/sms  where Twilio posts inbound picture messages
 #
-# App Platform strips the /twilio route prefix before the request reaches the
-# service, so the sms component sees /sms. PUBLIC_BASE_URL must therefore end
-# in /twilio so signature validation rebuilds the URL Twilio actually signed.
+# It was two components once, which meant renting two machines to do very
+# little. Nothing strips a route prefix now, so PUBLIC_BASE_URL is simply the
+# app's root URL and signature validation rebuilds the exact URL Twilio signed.
 #
-# Fill in the github repo below, then:
-#   doctl apps create --spec .do/app.yaml
+#   doctl --context personal apps create --spec .do/app.yaml
 name: benjamin-memorial
 region: nyc
 
 services:
   - name: web
-    source_dir: /webpage
+    source_dir: /app
     github:
       repo: bmewing/benjamin-memorial
       branch: master
@@ -42,35 +41,6 @@ services:
       - key: SPACES_REGION
         scope: RUN_TIME
         value: nyc3
-
-  - name: sms
-    source_dir: /twilio
-    github:
-      repo: bmewing/benjamin-memorial
-      branch: master
-      deploy_on_push: true
-    environment_slug: python
-    run_command: uvicorn main:app --host 0.0.0.0 --port 8080
-    http_port: 8080
-    instance_count: 1
-    instance_size_slug: apps-s-1vcpu-0.5gb
-    routes:
-      - path: /twilio
-    health_check:
-      http_path: /health
-    envs:
-      - key: SPACES_KEY
-        scope: RUN_TIME
-        type: SECRET
-      - key: SPACES_SECRET
-        scope: RUN_TIME
-        type: SECRET
-      - key: SPACES_BUCKET
-        scope: RUN_TIME
-        value: benjamin-memorial
-      - key: SPACES_REGION
-        scope: RUN_TIME
-        value: nyc3
       - key: TWILIO_ACCOUNT_SID
         scope: RUN_TIME
         type: SECRET
@@ -79,4 +49,4 @@ services:
         type: SECRET
       - key: PUBLIC_BASE_URL
         scope: RUN_TIME
-        value: ${APP_URL}/twilio
+        value: ${APP_URL}

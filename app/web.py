@@ -14,7 +14,7 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException
+from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
@@ -30,7 +30,7 @@ MAX_BYTES = 512 * 1024 * 1024  # 512 MB, generous enough for phone video
 UPLOAD_URL_TTL = 60 * 60       # 1 hour to finish an upload
 VIEW_URL_TTL = 60 * 60 * 6     # 6 hours for a gallery link
 
-app = FastAPI(title="Benjamin Memorial - photo collection")
+router = APIRouter()
 
 
 class FileRequest(BaseModel):
@@ -53,17 +53,12 @@ def _slug(name: str) -> str:
     return f"{stem[:80]}{suffix}"
 
 
-@app.get("/health")
-async def health() -> dict[str, str]:
-    return {"status": "ok", "bucket": storage.BUCKET}
-
-
-@app.get("/")
+@router.get("/")
 async def index() -> FileResponse:
     return FileResponse(STATIC / "index.html")
 
 
-@app.post("/api/presign")
+@router.post("/api/presign")
 async def presign(req: PresignRequest) -> dict:
     if not req.files:
         raise HTTPException(400, "No files given.")
@@ -113,7 +108,7 @@ async def presign(req: PresignRequest) -> dict:
     return {"files": out}
 
 
-@app.get("/api/gallery")
+@router.get("/api/gallery")
 async def gallery(limit: int = 300) -> dict:
     s3 = storage.client()
     items = []
