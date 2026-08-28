@@ -17,8 +17,8 @@ services:
   - name: web
     source_dir: /webpage
     github:
-      repo: REPLACE_ME/Benjamin-memorial
-      branch: main
+      repo: bmewing/benjamin-memorial
+      branch: master
       deploy_on_push: true
     environment_slug: python
     run_command: uvicorn main:app --host 0.0.0.0 --port 8080
@@ -46,8 +46,8 @@ services:
   - name: sms
     source_dir: /twilio
     github:
-      repo: REPLACE_ME/Benjamin-memorial
-      branch: main
+      repo: bmewing/benjamin-memorial
+      branch: master
       deploy_on_push: true
     environment_slug: python
     run_command: uvicorn main:app --host 0.0.0.0 --port 8080

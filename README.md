@@ -64,7 +64,7 @@ deployed, to narrow it from `*` to just your site.
 
 ### 5. Deploy
 
-Put this repo on GitHub, set the `repo:` lines in `.do/app.yaml`, then:
+Push this repo to GitHub, then:
 
 ```bash
 doctl apps create --spec .do/app.yaml
