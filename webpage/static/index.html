@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Remembering Benjamin</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f7f4ef;
+    --card: #fffdfa;
+    --ink: #2e2b26;
+    --muted: #6f6862;
+    --line: #e2dbd1;
+    --accent: #5b6b63;
+    --accent-soft: #eceee9;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 0 24px; }
+  header { text-align: center; padding: 88px 0 56px; }
+  h1 {
+    font-family: "EB Garamond", Georgia, serif;
+    font-weight: 400;
+    font-size: clamp(2.6rem, 7vw, 3.9rem);
+    letter-spacing: 0.01em;
+    margin: 0 0 14px;
+  }
+  .dates {
+    font-family: "EB Garamond", Georgia, serif;
+    font-size: 1.15rem; color: var(--muted); font-style: italic; margin: 0;
+  }
+  .rule { width: 54px; height: 1px; background: var(--line); margin: 34px auto; border: 0; }
+  .lede {
+    font-family: "EB Garamond", Georgia, serif;
+    font-size: 1.28rem;
+    line-height: 1.75;
+    max-width: 34em;
+    margin: 0 auto;
+    text-align: center;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 36px 32px;
+    margin: 46px 0;
+  }
+  .drop {
+    border: 1px dashed #cfc6b9;
+    border-radius: 3px;
+    padding: 46px 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: background .15s ease, border-color .15s ease;
+    background: #fdfcfa;
+  }
+  .drop:hover, .drop.over { background: var(--accent-soft); border-color: var(--accent); }
+  .drop strong { font-weight: 500; display: block; font-size: 1.1rem; margin-bottom: 6px; }
+  .drop span { color: var(--muted); font-size: .92rem; }
+  input[type=file] { display: none; }
+  label.field { display: block; margin: 22px 0 0; font-size: .88rem; color: var(--muted); }
+  label.field em { font-style: normal; opacity: .6; }
+  input[type=text], textarea {
+    width: 100%; margin-top: 7px; padding: 11px 13px;
+    border: 1px solid var(--line); border-radius: 3px; background: #fff;
+    font: inherit; font-size: .97rem; color: var(--ink); resize: vertical;
+  }
+  input[type=text]:focus, textarea:focus { outline: none; border-color: var(--accent); }
+  button {
+    margin-top: 26px; width: 100%; padding: 14px 20px;
+    background: var(--accent); color: #fff; border: 0; border-radius: 3px;
+    font: inherit; font-size: 1rem; letter-spacing: .02em; cursor: pointer;
+    transition: opacity .15s ease;
+  }
+  button:hover:not(:disabled) { opacity: .88; }
+  button:disabled { background: #b9b3ab; cursor: default; }
+  .queue { margin-top: 24px; }
+  .row {
+    display: flex; align-items: center; gap: 12px; padding: 9px 0;
+    border-top: 1px solid var(--line); font-size: .9rem;
+  }
+  .row .nm { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .row .st { color: var(--muted); font-size: .84rem; white-space: nowrap; }
+  .row .st.done { color: var(--accent); }
+  .row .st.err { color: #a4443a; }
+  .bar { height: 2px; background: var(--line); border-radius: 2px; overflow: hidden; width: 76px; }
+  .bar i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .2s ease; }
+  .note { text-align: center; color: var(--muted); font-size: .88rem; margin-top: 18px; }
+  .thanks { text-align: center; padding: 20px 0; }
+  .thanks p { font-family: "EB Garamond", Georgia, serif; font-size: 1.3rem; margin: 0 0 18px; }
+  .linkish {
+    background: none; border: 0; color: var(--accent); text-decoration: underline;
+    cursor: pointer; font: inherit; width: auto; margin: 0; padding: 0;
+  }
+  h2 {
+    font-family: "EB Garamond", Georgia, serif; font-weight: 400; font-size: 1.7rem;
+    text-align: center; margin: 72px 0 8px;
+  }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin: 28px 0 0; }
+  .grid figure { margin: 0; aspect-ratio: 1; overflow: hidden; background: var(--accent-soft); border-radius: 2px; }
+  .grid img, .grid video { width: 100%; height: 100%; object-fit: cover; display: block; }
+  footer { text-align: center; color: var(--muted); font-size: .85rem; padding: 70px 0 60px; }
+  .sms { font-size: 1.12rem; }
+  .sms b { font-weight: 500; white-space: nowrap; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>Benjamin</h1>
+    <!-- Replace with his dates, or delete this line -->
+    <p class="dates">&nbsp;</p>
+    <hr class="rule">
+    <p class="lede">
+      If you have a photo of Benjamin &mdash; any moment, however small &mdash;
+      we would love to have it. They are being gathered here for his family.
+    </p>
+  </header>
+
+  <div class="card">
+    <div id="form">
+      <div class="drop" id="drop">
+        <strong>Choose photos or videos</strong>
+        <span>or drag them here</span>
+      </div>
+      <input type="file" id="picker" multiple accept="image/*,video/*">
+
+      <label class="field">
+        Your name <em>(optional)</em>
+        <input type="text" id="uploader" autocomplete="name" placeholder="So we know who to thank">
+      </label>
+
+      <label class="field">
+        A memory or note <em>(optional)</em>
+        <textarea id="note" rows="3" placeholder="Where it was taken, what was happening, anything you would like to say"></textarea>
+      </label>
+
+      <div class="queue" id="queue"></div>
+      <button id="send" disabled>Add to the collection</button>
+      <p class="note">Photos stay private and go only to Benjamin's family.</p>
+    </div>
+
+    <div class="thanks" id="thanks" hidden>
+      <p>Thank you. It means a great deal.</p>
+      <button class="linkish" id="again">Add more photos</button>
+    </div>
+  </div>
+
+  <p class="lede sms">
+    You can also text photos to <b id="smsnum">the memorial number</b>.
+  </p>
+
+  <h2>What's been shared</h2>
+  <div class="grid" id="grid"></div>
+  <p class="note" id="empty" hidden>Nothing yet &mdash; yours would be the first.</p>
+
+  <footer>Held for Benjamin's family.</footer>
+</div>
+
+<script>
+const picker = document.getElementById('picker');
+const drop   = document.getElementById('drop');
+const queue  = document.getElementById('queue');
+const send   = document.getElementById('send');
+const form   = document.getElementById('form');
+const thanks = document.getElementById('thanks');
+let files = [];
+
+drop.addEventListener('click', () => picker.click());
+['dragenter', 'dragover'].forEach(e => drop.addEventListener(e, ev => {
+  ev.preventDefault();
+  drop.classList.add('over');
+}));
+['dragleave', 'drop'].forEach(e => drop.addEventListener(e, ev => {
+  ev.preventDefault();
+  drop.classList.remove('over');
+}));
+drop.addEventListener('drop', ev => addFiles(ev.dataTransfer.files));
+picker.addEventListener('change', () => addFiles(picker.files));
+
+function addFiles(list) {
+  for (const f of list) {
+    if (!/^(image|video)\//.test(f.type)) continue;
+    if (files.some(x => x.name === f.name && x.size === f.size)) continue;
+    files.push(f);
+  }
+  render();
+}
+
+function render() {
+  queue.innerHTML = '';
+  files.forEach((f, i) => {
+    const row = document.createElement('div');
+    row.className = 'row';
+    row.innerHTML =
+      '<span class="nm"></span>' +
+      '<span class="bar"><i id="p' + i + '"></i></span>' +
+      '<span class="st" id="s' + i + '">ready</span>';
+    row.querySelector('.nm').textContent = f.name;
+    queue.appendChild(row);
+  });
+  send.disabled = files.length === 0;
+  send.textContent = files.length
+    ? 'Add ' + files.length + (files.length === 1 ? ' photo' : ' photos')
+    : 'Add to the collection';
+}
+
+// fetch() reports no upload progress, so the photos themselves go up over XHR.
+function putFile(url, file, onProgress) {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('PUT', url);
+    xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
+    xhr.upload.onprogress = e => { if (e.lengthComputable) onProgress(e.loaded / e.total); };
+    xhr.onload = () => (xhr.status >= 200 && xhr.status < 300)
+      ? resolve()
+      : reject(new Error('HTTP ' + xhr.status));
+    xhr.onerror = () => reject(new Error('network error'));
+    xhr.send(file);
+  });
+}
+
+send.addEventListener('click', async () => {
+  send.disabled = true;
+  const payload = {
+    uploader: document.getElementById('uploader').value,
+    note: document.getElementById('note').value,
+    files: files.map(f => ({ name: f.name, type: f.type, size: f.size })),
+  };
+
+  let signed;
+  try {
+    const r = await fetch('/api/presign', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.detail || 'could not start the upload');
+    signed = data.files;
+  } catch (err) {
+    alert('Something went wrong starting the upload: ' + err.message);
+    send.disabled = false;
+    return;
+  }
+
+  let ok = 0;
+  await Promise.all(files.map(async (f, i) => {
+    const st = document.getElementById('s' + i);
+    const p  = document.getElementById('p' + i);
+    st.textContent = 'sending';
+    try {
+      await putFile(signed[i].url, f, frac => { p.style.width = (frac * 100) + '%'; });
+      p.style.width = '100%';
+      st.textContent = 'added';
+      st.className = 'st done';
+      ok++;
+    } catch (err) {
+      st.textContent = 'failed';
+      st.className = 'st err';
+    }
+  }));
+
+  if (ok > 0) {
+    form.hidden = true;
+    thanks.hidden = false;
+    loadGallery();
+  } else {
+    send.disabled = false;
+  }
+});
+
+document.getElementById('again').addEventListener('click', () => {
+  files = [];
+  picker.value = '';
+  render();
+  document.getElementById('note').value = '';
+  thanks.hidden = true;
+  form.hidden = false;
+});
+
+async function loadGallery() {
+  try {
+    const r = await fetch('/api/gallery');
+    const { items } = await r.json();
+    const grid = document.getElementById('grid');
+    grid.innerHTML = '';
+    document.getElementById('empty').hidden = items.length > 0;
+    for (const it of items) {
+      const fig = document.createElement('figure');
+      if (it.kind === 'video') {
+        const v = document.createElement('video');
+        v.src = it.url;
+        v.muted = true;
+        v.playsInline = true;
+        v.controls = true;
+        fig.appendChild(v);
+      } else {
+        const img = document.createElement('img');
+        img.src = it.url;
+        img.loading = 'lazy';
+        img.alt = it.caption || 'A photo of Benjamin';
+        fig.appendChild(img);
+      }
+      if (it.caption) fig.title = it.caption;
+      grid.appendChild(fig);
+    }
+  } catch (err) {
+    console.error('could not load the gallery', err);
+  }
+}
+
+render();
+loadGallery();
+</script>
+</body>
+</html>
