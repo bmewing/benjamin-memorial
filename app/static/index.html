@@ -104,6 +104,27 @@
     background: none; border: 0; color: var(--accent); text-decoration: underline;
     cursor: pointer; font: inherit; width: auto; margin: 0; padding: 0;
   }
+  .obit {
+    font-family: "EB Garamond", Georgia, serif;
+    font-size: 1.16rem;
+    line-height: 1.82;
+    max-width: 35em;
+    margin: 0 auto;
+  }
+  .obit p { margin: 0 0 1.2em; }
+  .obit p:first-child::first-letter {
+    float: left; font-size: 3.1rem; line-height: .86;
+    padding: 6px 10px 0 0; color: var(--accent);
+  }
+  .service {
+    max-width: 35em; margin: 44px auto 0;
+    border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+    padding: 26px 0;
+  }
+  .service p {
+    margin: 0; font-size: .96rem; line-height: 1.75; color: var(--muted);
+  }
+  .service a { color: var(--accent); text-decoration: underline; word-break: break-word; }
   h2 {
     font-family: "EB Garamond", Georgia, serif; font-weight: 400; font-size: 1.7rem;
     text-align: center; margin: 72px 0 8px;
@@ -120,15 +141,29 @@
 <div class="wrap">
 
   <header>
-    <h1>Benjamin</h1>
-    <!-- Replace with his dates, or delete this line -->
-    <p class="dates">&nbsp;</p>
+    <h1>Benjamin Mark Ewing 2</h1>
+    <p class="dates">2010 &ndash; 2026</p>
     <hr class="rule">
-    <p class="lede">
-      If you have a photo of Benjamin &mdash; any moment, however small &mdash;
-      we would love to have it. They are being gathered here for his family.
-    </p>
   </header>
+
+  <section class="obit">
+    <p>Benjamin Mark Ewing 2, 16, took his own life on August 24, 2026. He is the beloved son of his surviving parents, Amy and Mark Ewing. Born in Toledo, OH in 2010, Benjamin moved to Tennessee when he was just 6 months old. On his first birthday, he moved into his first house in Mount Carmel, TN where he laughed and played. Partway through 1st grade, he moved to Kingsport, TN and set about winning the hearts of everyone who met him while he attended Jackson Elementary, Sevier Middle, and Dobyns-Bennet High. Like many in his generation, he struggled during the lockdown of COVID. Despite his own turmoil, Benjamin cared deeply about helping others and was excited to help 3D print and package up more than 40,000 “ear savers” to help frontline workers deal with the pain of constant mask usage. His kindness was boundless to everyone he met.</p>
+    <p>Benjamin had many hobbies, interests, and passions during his life, a few of which were spending time in nature, cooking, and woodworking. As a young child, he was a very picky eater, but as he grew up and began helping cook meals, his palette developed, and he began exploring new and exciting flavors. During the summer, he took great pride in developing custom rubs for pork butts that he would smoke for social gatherings held at his home. He was especially excited about a spice blend he made for an egg competition with his youth group, and he made extra to enjoy with future eggs.</p>
+    <p>As a woodworker, he helped his parents rebuild multiple decks, finish a basement, and as he got older, learned the joys of turning wood which led to him starting his own business at 14, “Ben’s Pens”. He helped his mother teach cutting board classes at the Inventor Center, demonstrated how to use a laser cutter during Made in Kingsport events, and spent multiple spring breaks working with his father to build furniture for his bedroom including a loft bed.</p>
+    <p>Benjamin loved hiking at Bays Mountain, stopping to take time and enjoy the serenity and beauty of the natural landscape. Whether it was special bonding time with his mother, taking his visiting cousin, his grandmothers, or even going up by himself sometimes, he would spend hours photographing all aspects of nature that caught his eye, from a weirdly twisted tree to a caterpillar crossing the trail.</p>
+    <p>Benjamin was a deeply private individual and kept his pain hidden from the people who loved him the most, but he did not let that pain stop him from being kind, caring, and beautiful to everyone he met. He did not realize the scope of the impact that his sense of fun, his generosity, and kindness brought to world, but those he left behind will always remember him and will always love him.</p>
+  </section>
+
+  <section class="service">
+    <p>Memorial services will be held on September 12 at 1PM at 100 Canongate Rd, Kingsport, TN. A Celebration of Life event for all ages will be held afterward at The Social at 240 E Main St, Kingsport. In lieu of flowers, his parents ask that you instead consider making a charitable contribution to either the Bays Mountain Park Association (<a href="https://www.friendsofbays.org/donate/in-memoriam-donations/benjamin-ewing-ii-in-memoriam-donations" target="_blank" rel="noopener">https://www.friendsofbays.org/donate/in-memoriam-donations/benjamin-ewing-ii-in-memoriam-donations</a>) or The Inventor Center (<a href="https://zeffy.com/en-US/donation-form/in-loving-memory-of-benjamin-ewing" target="_blank" rel="noopener">https://zeffy.com/en-US/donation-form/in-loving-memory-of-benjamin-ewing</a>)</p>
+  </section>
+
+  <hr class="rule">
+
+  <p class="lede">
+    If you have a photo of Benjamin &mdash; any moment, however small &mdash;
+    we would love to have it. They are being gathered here for his family.
+  </p>
 
   <div class="card">
     <div id="form">
