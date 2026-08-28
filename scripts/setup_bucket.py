@@ -3,6 +3,17 @@
 Safe to re-run. Reads credentials from .env in the project root.
 
     python scripts/setup_bucket.py
+
+Note: setting CORS is a bucket-admin operation, and the scoped key in .env
+cannot do it -- you will get AccessDenied. Make a throwaway full-access key,
+use it just for this, and delete it again:
+
+    doctl spaces keys create tmp-cors --grants 'bucket=;permission=fullaccess'
+    SPACES_KEY=... SPACES_SECRET=... ALLOWED_ORIGINS=https://site python scripts/setup_bucket.py
+    doctl spaces keys delete <access-key>
+
+ALLOWED_ORIGINS takes a comma-separated list; give it every name the site
+answers to, or uploads from the ones you missed will fail in the browser.
 """
 import os
 import sys

@@ -60,19 +60,52 @@ def _extension(content_type: str, fallback: str = ".jpg") -> str:
     return {".jpe": ".jpg"}.get(ext, ext) or fallback
 
 
+def _candidate_urls(request: Request) -> list[str]:
+    """The URLs Twilio might have signed, best guess first.
+
+    Twilio signs the exact URL typed into its console, so the check has to
+    rebuild that string character for character. Two things get in the way:
+    behind App Platform's proxy the scheme on request.url is http, and the
+    site answers to more than one name -- the memorial domain and the
+    ondigitalocean.app address. Deriving the host from the request means
+    either one validates without a config change, which is one less way for
+    a texted photo to be turned away.
+
+    PUBLIC_BASE_URL is still honoured if set, as an override.
+    """
+    path = request.url.path
+    host = (request.headers.get("x-forwarded-host")
+            or request.headers.get("host")
+            or request.url.netloc)
+    scheme = (request.headers.get("x-forwarded-proto") or "https").split(",")[0].strip()
+
+    urls = [f"{scheme}://{host}{path}"]
+    if PUBLIC_BASE_URL:
+        urls.append(f"{PUBLIC_BASE_URL}{path}")
+    if str(request.url) not in urls:
+        urls.append(str(request.url))
+    return urls
+
+
 async def _valid_signature(request: Request, form: dict[str, str]) -> bool:
     if SKIP_SIGNATURE_CHECK:
         return True
     if not AUTH_TOKEN:
         log.error("TWILIO_AUTH_TOKEN is unset; refusing request")
         return False
+
     signature = request.headers.get("X-Twilio-Signature", "")
-    # Behind App Platform's proxy the scheme on request.url is http, so build
-    # the URL Twilio actually signed from the configured public base. The path
-    # already carries the /twilio prefix -- nothing strips it now that this is
-    # one app -- so PUBLIC_BASE_URL is just the app root.
-    url = f"{PUBLIC_BASE_URL}{request.url.path}" if PUBLIC_BASE_URL else str(request.url)
-    return RequestValidator(AUTH_TOKEN).validate(url, form, signature)
+    validator = RequestValidator(AUTH_TOKEN)
+    # Trying a handful of spellings is safe: each one still has to match the
+    # HMAC, which needs the auth token nobody else has.
+    for url in _candidate_urls(request):
+        if validator.validate(url, form, signature):
+            return True
+
+    # Say which URLs were tried -- a silent 403 here is very hard to diagnose,
+    # and the usual cause is simply the wrong address in the Twilio console.
+    log.warning("no signature match; tried %s", _candidate_urls(request))
+    return False
 
 
 @router.post("/twilio/sms")
