@@ -66,7 +66,7 @@ services:
         type: SECRET
       - key: GRADIENT_MODEL
         scope: RUN_TIME
-        value: anthropic-claude-opus-5
+        value: llama-4-maverick
       - key: PUBLIC_BASE_URL
         scope: RUN_TIME
         value: ${APP_URL}
