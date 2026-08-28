@@ -647,6 +647,14 @@ send.addEventListener('click', async () => {
   }));
 
   if (failed < files.length) {
+    // Uploads go straight to Spaces, so the server only learns about them if
+    // the page says so. Best effort -- a miss is picked up by the sweep.
+    fetch('/api/uploaded', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({keys: plan.map(p => p.key)})
+    }).catch(() => {});
+
     form.hidden = true;
     thanks.hidden = false;
   } else {

@@ -13,10 +13,11 @@ import re
 from datetime import datetime, timezone
 
 import httpx
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, BackgroundTasks, Request
 from fastapi.responses import PlainTextResponse, Response
 from twilio.request_validator import RequestValidator
 
+import moderation
 import storage
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
@@ -109,7 +110,7 @@ async def _valid_signature(request: Request, form: dict[str, str]) -> bool:
 
 
 @router.post("/twilio/sms")
-async def sms(request: Request) -> Response:
+async def sms(request: Request, background: BackgroundTasks) -> Response:
     form = {k: str(v) for k, v in (await request.form()).items()}
 
     if not await _valid_signature(request, form):
@@ -158,6 +159,11 @@ async def sms(request: Request) -> Response:
 
         saved += 1
         log.info("stored %s (%d bytes) from %s", key, len(data), sender)
+
+        # Screen it after this request returns. The sender is thanked either
+        # way, and Twilio times out long before a vision model would answer.
+        if moderation.enabled():
+            background.add_task(moderation.review_key, storage, key, body_text, sender)
 
     # Keep the words people sent, whether or not a photo came with them.
     if body_text or saved:

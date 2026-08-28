@@ -61,6 +61,12 @@ services:
       - key: GALLERY_KEY
         scope: RUN_TIME
         type: SECRET
+      - key: GRADIENT_API_KEY
+        scope: RUN_TIME
+        type: SECRET
+      - key: GRADIENT_MODEL
+        scope: RUN_TIME
+        value: openai-gpt-4o
       - key: PUBLIC_BASE_URL
         scope: RUN_TIME
         value: ${APP_URL}

@@ -81,6 +81,32 @@
     border: 1px solid var(--sage); color: var(--sepia);
     padding: 1px 6px; margin-left: 6px;
   }
+  figure.flagged a.shot { position: relative; }
+  figure.flagged img, figure.flagged video { filter: blur(22px); }
+  .veil {
+    position: absolute; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 8px; text-align: center;
+    padding: 16px; background: rgba(232,231,223,.72);
+  }
+  .veil strong {
+    font-family: var(--sans); font-size: .68rem; font-weight: 600;
+    letter-spacing: .13em; text-transform: uppercase; color: #8a3f32;
+  }
+  .veil span { font-family: var(--sans); font-size: .76rem; color: var(--sepia); line-height: 1.5; }
+  .veil em { font-family: var(--sans); font-size: .66rem; font-style: normal;
+             letter-spacing: .1em; text-transform: uppercase; color: var(--pine); }
+  figure.shown .veil { display: none; }
+  figure.shown img, figure.shown video { filter: none; }
+
+  .why {
+    font-family: var(--sans); font-size: .74rem; line-height: 1.5;
+    color: #8a3f32; margin: 0 0 8px;
+  }
+  .pending {
+    font-family: var(--sans); font-size: .66rem; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--sepia); opacity: .7; margin: 0 0 6px;
+  }
+
   .state {
     text-align: center; color: var(--sepia); padding: 70px 0;
     font-size: 1.1rem;
@@ -104,6 +130,7 @@
     <button class="filter" id="f-all"  aria-pressed="true">Everything</button>
     <button class="filter" id="f-sms"  aria-pressed="false">Texted</button>
     <button class="filter" id="f-web"  aria-pressed="false">Uploaded</button>
+    <button class="filter" id="f-flag" aria-pressed="false">Needs a look</button>
   </div>
 
   <div class="grid" id="grid"></div>
@@ -138,8 +165,13 @@ function phone(raw) {
   return m ? `(${m[1]}) ${m[2]}-${m[3]}` : raw;
 }
 
+const flagged = i => i.concern === 'serious' || i.concern === 'review';
+
 function draw() {
-  const shown = items.filter(i => filter === 'all' || i.source === filter);
+  const shown = items.filter(i =>
+    filter === 'all'  ? true :
+    filter === 'flag' ? flagged(i) :
+                        i.source === filter);
   count.textContent = shown.length + (shown.length === 1 ? ' item' : ' items');
   grid.innerHTML = '';
 
@@ -148,6 +180,7 @@ function draw() {
 
   for (const i of shown) {
     const fig = document.createElement('figure');
+    if (flagged(i)) fig.className = 'flagged';
 
     const a = document.createElement('a');
     a.className = 'shot';
@@ -163,9 +196,41 @@ function draw() {
       img.src = i.url; img.loading = 'lazy'; img.alt = '';
       a.appendChild(img);
     }
+    // Anything the screening model was unhappy about stays covered until it
+    // is deliberately uncovered. Nothing is hidden from you, only from a
+    // glance you did not choose to take.
+    if (flagged(i)) {
+      const veil = document.createElement('div');
+      veil.className = 'veil';
+      const label = document.createElement('strong');
+      label.textContent = i.concern === 'serious' ? 'Flagged' : 'Worth a look';
+      const why = document.createElement('span');
+      why.textContent = i.review_note || (i.flags || []).join(', ') || 'Unclear.';
+      const act = document.createElement('em');
+      act.textContent = 'Click to show';
+      veil.append(label, why, act);
+      veil.addEventListener('click', ev => {
+        ev.preventDefault();
+        fig.classList.add('shown');
+      });
+      a.appendChild(veil);
+    }
+
     fig.appendChild(a);
 
     const cap = document.createElement('figcaption');
+
+    if (flagged(i) && i.review_note) {
+      const why = document.createElement('p');
+      why.className = 'why';
+      why.textContent = i.review_note;
+      cap.appendChild(why);
+    } else if (i.concern === 'unreviewed') {
+      const pend = document.createElement('p');
+      pend.className = 'pending';
+      pend.textContent = 'Not screened';
+      cap.appendChild(pend);
+    }
 
     const who = document.createElement('p');
     who.className = 'who';
@@ -191,10 +256,10 @@ function draw() {
   }
 }
 
-for (const [id, val] of [['f-all','all'], ['f-sms','sms'], ['f-web','web']]) {
+for (const [id, val] of [['f-all','all'], ['f-sms','sms'], ['f-web','web'], ['f-flag','flag']]) {
   document.getElementById(id).addEventListener('click', () => {
     filter = val;
-    for (const other of ['f-all','f-sms','f-web']) {
+    for (const other of ['f-all','f-sms','f-web','f-flag']) {
       document.getElementById(other).setAttribute('aria-pressed', String(other === id));
     }
     draw();
@@ -206,6 +271,9 @@ for (const [id, val] of [['f-all','all'], ['f-sms','sms'], ['f-web','web']]) {
     const r = await fetch('/api/gallery?key=' + encodeURIComponent(KEY));
     if (!r.ok) { say('That link is not valid.'); count.textContent = ''; return; }
     items = (await r.json()).items;
+    const n = items.filter(flagged).length;
+    if (n) document.getElementById('f-flag').textContent =
+      'Needs a look · ' + n;
     draw();
   } catch (err) {
     say('Could not load. Try reloading.');

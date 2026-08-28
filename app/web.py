@@ -15,10 +15,11 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from pathlib import Path
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, BackgroundTasks, HTTPException
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
+import moderation
 import storage
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
@@ -114,6 +115,28 @@ async def presign(req: PresignRequest) -> dict:
     return {"files": out}
 
 
+class UploadedRequest(BaseModel):
+    keys: list[str] = Field(max_length=50)
+
+
+@router.post("/api/uploaded")
+async def uploaded(req: UploadedRequest, background: BackgroundTasks) -> dict:
+    """The page calls this once its files are in the bucket.
+
+    Uploads go browser-to-Spaces so this service never touches the bytes and
+    has no other way to know something arrived. Anything missed here is caught
+    later by scripts/screen_pending.py.
+    """
+    queued = 0
+    for key in req.keys:
+        if not key.startswith("web/") or key.endswith(".json"):
+            continue
+        if moderation.enabled():
+            background.add_task(moderation.review_key, storage, key, "", "")
+        queued += 1
+    return {"queued": queued}
+
+
 @router.get("/api/gallery")
 async def gallery(key: str = "", limit: int = 300) -> dict:
     """List what has come in. Closed unless GALLERY_KEY is set and matches."""
@@ -128,7 +151,7 @@ async def gallery(key: str = "", limit: int = 300) -> dict:
         for obj in page.get("Contents", []):
             k = obj["Key"]
             if k.endswith(".json") or obj["Size"] == 0:
-                continue
+                continue  # covers the .review.json verdicts too
             items.append({"key": k, "when": obj["LastModified"], "size": obj["Size"]})
 
     items.sort(key=lambda o: o["when"], reverse=True)
@@ -155,6 +178,11 @@ async def gallery(key: str = "", limit: int = 300) -> dict:
         with ThreadPoolExecutor(max_workers=16) as pool:
             notes = dict(pool.map(load_sidecar, wanted))
 
+    # What the screening model made of each item, if it has run yet.
+    with ThreadPoolExecutor(max_workers=16) as pool:
+        verdicts = dict(pool.map(load_sidecar,
+                                 [i["key"] + moderation.REVIEW_SUFFIX for i in items]))
+
     def decorate(item: dict) -> dict:
         k = item["key"]
         try:
@@ -165,7 +193,12 @@ async def gallery(key: str = "", limit: int = 300) -> dict:
             meta, content_type = {}, ""
 
         note = notes.get(sidecar_for(k), {}) if k.startswith("web/") else {}
+        verdict = verdicts.get(k + moderation.REVIEW_SUFFIX, {})
         return {
+            "concern": verdict.get("concern", "unreviewed"),
+            "flags": verdict.get("flags", []),
+            "subject": verdict.get("subject", ""),
+            "review_note": verdict.get("note", ""),
             "key": k,
             "when": item["when"].isoformat(),
             "size": item["size"],
