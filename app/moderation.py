@@ -33,7 +33,7 @@ log = logging.getLogger("memorial.review")
 BASE_URL = (os.environ.get("GRADIENT_BASE_URL", "").strip()
             or "https://inference.do-ai.run/v1")
 API_KEY = os.environ.get("GRADIENT_API_KEY", "").strip()
-MODEL = os.environ.get("GRADIENT_MODEL", "").strip() or "openai-gpt-4o"
+MODEL = os.environ.get("GRADIENT_MODEL", "").strip() or "anthropic-claude-opus-5"
 
 REVIEW_SUFFIX = ".review.json"
 
