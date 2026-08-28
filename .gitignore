@@ -7,5 +7,7 @@ __pycache__/
 .DS_Store
 downloads/
 
-# Deploy spec with real secrets in it. Never commit.
-.do/app.local.yaml
+# Generated deploy specs carry real secrets. Only the clean template is
+# tracked; anything else under .do/ stays out.
+.do/*.yaml
+!.do/app.yaml
