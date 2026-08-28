@@ -3,225 +3,541 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Remembering Benjamin</title>
+<title>Benjamin Mark Ewing 2</title>
 <meta name="robots" content="noindex, nofollow">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;1,6..72,300;1,6..72,400&family=Karla:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
+  /* Palette taken from his portrait: the pine of the suit, the sepia of the
+     studio backdrop, the pale sage of the argyle socks. */
   :root {
-    --bg: #f7f4ef;
-    --card: #fffdfa;
-    --ink: #2e2b26;
-    --muted: #6f6862;
-    --line: #e2dbd1;
-    --accent: #5b6b63;
-    --accent-soft: #eceee9;
+    --pine:      #14332d;
+    --pine-deep: #0c231f;
+    --sepia:     #6b5747;
+    --sage:      #a9b4a6;
+    --ground:    #e8e7df;
+    --card:      #f4f3ee;
+    --ink:       #2a2621;
+    --line:      #d3d2c8;
+    --line-soft: #dedcd3;
+
+    --serif: "Newsreader", Georgia, "Times New Roman", serif;
+    --sans:  "Karla", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+    --shell: 700px;
+    --prose: 34em;
   }
+
   * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+
   body {
     margin: 0;
-    background: var(--bg);
+    background: var(--ground);
     color: var(--ink);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    font-size: 16px;
-    line-height: 1.6;
+    font-family: var(--serif);
+    font-size: 17px;
+    line-height: 1.72;
     -webkit-font-smoothing: antialiased;
   }
-  .wrap { max-width: 720px; margin: 0 auto; padding: 0 24px; }
-  header { text-align: center; padding: 88px 0 56px; }
+
+  .shell { max-width: var(--shell); margin: 0 auto; padding: 0 24px; }
+  a { color: var(--pine); }
+
+  :focus-visible { outline: 2px solid var(--pine); outline-offset: 3px; }
+
+  /* ---------- masthead: the portrait, lit the way the studio lit it ------ */
+
+  .masthead { position: relative; text-align: center; padding: 54px 0 8px; }
+  .masthead::before {
+    content: "";
+    position: absolute;
+    left: 50%; top: 0;
+    width: min(1100px, 150vw); height: 78%;
+    transform: translateX(-50%);
+    background: radial-gradient(ellipse at 50% 38%,
+                rgba(107, 87, 71, .17) 0%,
+                rgba(107, 87, 71, .06) 42%,
+                transparent 68%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .masthead > * { position: relative; z-index: 1; }
+
+  .mat {
+    display: inline-block;
+    background: var(--card);
+    padding: 15px 15px 14px;
+    border: 1px solid var(--line-soft);
+    box-shadow: 0 1px 2px rgba(42, 38, 33, .05),
+                0 18px 40px -18px rgba(42, 38, 33, .30);
+    max-width: min(400px, 74vw);
+  }
+  .mat img {
+    display: block; width: 100%; height: auto;
+    border: 1px solid rgba(42, 38, 33, .13);
+  }
+
+  .credit {
+    font-family: var(--sans);
+    font-size: .67rem; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--sepia); opacity: .72; margin: 15px 0 0;
+  }
+
   h1 {
-    font-family: "EB Garamond", Georgia, serif;
-    font-weight: 400;
-    font-size: clamp(2.6rem, 7vw, 3.9rem);
-    letter-spacing: 0.01em;
-    margin: 0 0 14px;
+    font-family: var(--serif); font-weight: 300;
+    font-size: clamp(2.05rem, 6vw, 2.9rem);
+    line-height: 1.12; color: var(--pine);
+    margin: 28px 0 10px;
   }
   .dates {
-    font-family: "EB Garamond", Georgia, serif;
-    font-size: 1.15rem; color: var(--muted); font-style: italic; margin: 0;
+    font-family: var(--serif); font-style: italic; font-weight: 300;
+    font-size: 1.12rem; color: var(--sepia); margin: 0 0 34px;
   }
-  .rule { width: 54px; height: 1px; background: var(--line); margin: 34px auto; border: 0; }
-  .lede {
-    font-family: "EB Garamond", Georgia, serif;
-    font-size: 1.28rem;
-    line-height: 1.75;
-    max-width: 34em;
-    margin: 0 auto;
-    text-align: center;
+
+  /* ---------- tabs ------------------------------------------------------ */
+
+  .tabs {
+    display: flex; flex-wrap: wrap; justify-content: center; gap: 0 4px;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
   }
+  .tabs a {
+    position: relative; display: block; padding: 15px 17px 14px;
+    font-family: var(--sans); font-size: .715rem; font-weight: 500;
+    letter-spacing: .135em; text-transform: uppercase;
+    color: var(--sepia); text-decoration: none; white-space: nowrap;
+    transition: color .18s ease;
+  }
+  .tabs a:hover { color: var(--pine); }
+  .tabs a[aria-selected="true"] { color: var(--pine); font-weight: 600; }
+  .tabs a[aria-selected="true"]::after {
+    content: ""; position: absolute;
+    left: 17px; right: 17px; bottom: -1px;
+    height: 2px; background: var(--pine);
+  }
+
+  .panel { padding: 46px 0 8px; }
+  .panel[hidden] { display: none; }
+
+  .panel-intro {
+    max-width: var(--prose); margin: 0 auto 34px; text-align: center;
+    font-size: 1.14rem; line-height: 1.75;
+  }
+
+  h2 {
+    font-family: var(--serif); font-weight: 400; font-size: 1.5rem;
+    color: var(--pine); text-align: center; margin: 0 0 6px;
+  }
+
+  .eyebrow {
+    font-family: var(--sans); font-size: .68rem; font-weight: 600;
+    letter-spacing: .16em; text-transform: uppercase;
+    color: var(--sepia); margin: 0 0 12px;
+  }
+
+  /* ---------- the upload card ------------------------------------------- */
+
   .card {
-    background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: 3px;
-    padding: 36px 32px;
-    margin: 46px 0;
+    background: var(--card); border: 1px solid var(--line-soft);
+    padding: 32px 30px; max-width: var(--prose); margin: 0 auto;
   }
+
   .drop {
-    border: 1px dashed #cfc6b9;
-    border-radius: 3px;
-    padding: 46px 24px;
-    text-align: center;
-    cursor: pointer;
-    transition: background .15s ease, border-color .15s ease;
-    background: #fdfcfa;
+    border: 1px dashed var(--sage); padding: 40px 22px; text-align: center;
+    cursor: pointer; background: rgba(169, 180, 166, .07);
+    transition: background .16s ease, border-color .16s ease;
   }
-  .drop:hover, .drop.over { background: var(--accent-soft); border-color: var(--accent); }
-  .drop strong { font-weight: 500; display: block; font-size: 1.1rem; margin-bottom: 6px; }
-  .drop span { color: var(--muted); font-size: .92rem; }
+  .drop:hover, .drop.over {
+    background: rgba(169, 180, 166, .18); border-color: var(--pine);
+  }
+  .drop strong {
+    display: block; font-family: var(--serif); font-weight: 400;
+    font-size: 1.16rem; color: var(--pine); margin-bottom: 4px;
+  }
+  .drop span { font-family: var(--sans); font-size: .86rem; color: var(--sepia); }
+
   input[type=file] { display: none; }
-  label.field { display: block; margin: 22px 0 0; font-size: .88rem; color: var(--muted); }
-  label.field em { font-style: normal; opacity: .6; }
+
+  label.field {
+    display: block; margin-top: 22px;
+    font-family: var(--sans); font-size: .76rem; font-weight: 600;
+    letter-spacing: .09em; text-transform: uppercase; color: var(--sepia);
+  }
+  label.field em {
+    font-style: normal; font-weight: 400; text-transform: none;
+    letter-spacing: 0; opacity: .75;
+  }
+
   input[type=text], textarea {
-    width: 100%; margin-top: 7px; padding: 11px 13px;
-    border: 1px solid var(--line); border-radius: 3px; background: #fff;
-    font: inherit; font-size: .97rem; color: var(--ink); resize: vertical;
+    display: block; width: 100%; margin-top: 8px; padding: 11px 13px;
+    border: 1px solid var(--line); background: #fdfdfb;
+    font-family: var(--serif); font-size: 1rem; color: var(--ink);
+    resize: vertical;
   }
-  input[type=text]:focus, textarea:focus { outline: none; border-color: var(--accent); }
-  button {
-    margin-top: 26px; width: 100%; padding: 14px 20px;
-    background: var(--accent); color: #fff; border: 0; border-radius: 3px;
-    font: inherit; font-size: 1rem; letter-spacing: .02em; cursor: pointer;
-    transition: opacity .15s ease;
+  input[type=text]:focus, textarea:focus { outline: none; border-color: var(--pine); }
+  ::placeholder { color: #a9a396; opacity: 1; }
+
+  .btn {
+    display: block; width: 100%; margin-top: 26px; padding: 15px 20px;
+    background: var(--pine); color: var(--card); border: 1px solid var(--pine);
+    font-family: var(--sans); font-size: .78rem; font-weight: 600;
+    letter-spacing: .13em; text-transform: uppercase; cursor: pointer;
+    transition: background .18s ease;
   }
-  button:hover:not(:disabled) { opacity: .88; }
-  button:disabled { background: #b9b3ab; cursor: default; }
-  .queue { margin-top: 24px; }
+  .btn:hover:not(:disabled) { background: var(--pine-deep); }
+  .btn:disabled { background: #b3b1a6; border-color: #b3b1a6; cursor: default; }
+
+  .queue { margin-top: 22px; }
+  .queue:empty { margin-top: 0; }
   .row {
     display: flex; align-items: center; gap: 12px; padding: 9px 0;
-    border-top: 1px solid var(--line); font-size: .9rem;
+    border-top: 1px solid var(--line-soft);
+    font-family: var(--sans); font-size: .84rem;
   }
   .row .nm { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .row .st { color: var(--muted); font-size: .84rem; white-space: nowrap; }
-  .row .st.done { color: var(--accent); }
-  .row .st.err { color: #a4443a; }
-  .bar { height: 2px; background: var(--line); border-radius: 2px; overflow: hidden; width: 76px; }
-  .bar i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .2s ease; }
-  .note { text-align: center; color: var(--muted); font-size: .88rem; margin-top: 18px; }
-  .thanks { text-align: center; padding: 20px 0; }
-  .thanks p { font-family: "EB Garamond", Georgia, serif; font-size: 1.3rem; margin: 0 0 18px; }
+  .row .st { color: var(--sepia); font-size: .78rem; white-space: nowrap; }
+  .row .st.done { color: var(--pine); }
+  .row .st.err  { color: #9c4a3c; }
+  .bar { height: 2px; width: 70px; background: var(--line); overflow: hidden; }
+  .bar i { display: block; height: 100%; width: 0; background: var(--pine); transition: width .2s ease; }
+
+  .fineprint {
+    font-family: var(--sans); font-size: .81rem; line-height: 1.6;
+    color: var(--sepia); text-align: center;
+    margin: 18px auto 0; max-width: var(--prose);
+  }
+
+  .thanks { text-align: center; padding: 26px 0; }
+  .thanks p { font-family: var(--serif); font-size: 1.28rem; color: var(--pine); margin: 0 0 20px; }
   .linkish {
-    background: none; border: 0; color: var(--accent); text-decoration: underline;
-    cursor: pointer; font: inherit; width: auto; margin: 0; padding: 0;
+    background: none; border: 0; padding: 0;
+    font-family: var(--sans); font-size: .78rem; font-weight: 600;
+    letter-spacing: .12em; text-transform: uppercase; color: var(--pine);
+    text-decoration: underline; text-underline-offset: 4px; cursor: pointer;
   }
-  .obit {
-    font-family: "EB Garamond", Georgia, serif;
-    font-size: 1.16rem;
-    line-height: 1.82;
-    max-width: 35em;
-    margin: 0 auto;
+
+  .texting {
+    text-align: center; max-width: var(--prose); margin: 26px auto 0;
+    font-size: 1.08rem;
   }
-  .obit p { margin: 0 0 1.2em; }
+  .texting a {
+    text-decoration: none; border-bottom: 1px solid var(--sage);
+    white-space: nowrap; font-weight: 500;
+  }
+  .texting a:hover { border-bottom-color: var(--pine); }
+
+  /* ---------- obituary --------------------------------------------------- */
+
+  .obit { max-width: var(--prose); margin: 0 auto; }
+  .obit p { margin: 0 0 1.25em; }
   .obit p:first-child::first-letter {
-    float: left; font-size: 3.1rem; line-height: .86;
-    padding: 6px 10px 0 0; color: var(--accent);
+    float: left; font-size: 3.05rem; line-height: .84;
+    padding: 7px 11px 0 0; color: var(--pine); font-weight: 300;
   }
-  .service {
-    max-width: 35em; margin: 44px auto 0;
-    border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
-    padding: 26px 0;
+
+  /* ---------- event panels ----------------------------------------------- */
+
+  .event {
+    max-width: 30em; margin: 0 auto; text-align: center;
+    background: var(--card); border: 1px solid var(--line-soft);
+    padding: 38px 30px 34px;
   }
-  .service p {
-    margin: 0; font-size: .96rem; line-height: 1.75; color: var(--muted);
+  .event .when {
+    font-family: var(--serif); font-size: 1.62rem; font-weight: 400;
+    color: var(--pine); line-height: 1.3; margin: 0 0 4px;
   }
-  .service a { color: var(--accent); text-decoration: underline; word-break: break-word; }
+  .event .time {
+    font-family: var(--serif); font-style: italic; font-size: 1.16rem;
+    color: var(--sepia); margin: 0 0 24px;
+  }
+  .event hr { width: 42px; height: 1px; border: 0; background: var(--sage); margin: 0 auto 24px; }
+  .event .where { font-size: 1.06rem; margin: 0 0 2px; }
+  .event .addr  { font-size: 1rem; color: var(--sepia); margin: 0 0 22px; font-style: italic; }
+  .event .note  {
+    font-family: var(--sans); font-size: .84rem; line-height: 1.65;
+    color: var(--sepia); margin: 22px 0 0;
+  }
+  .maplink {
+    display: inline-block; font-family: var(--sans);
+    font-size: .72rem; font-weight: 600; letter-spacing: .13em;
+    text-transform: uppercase; color: var(--pine); text-decoration: none;
+    border: 1px solid var(--sage); padding: 10px 18px;
+    transition: border-color .18s ease, background .18s ease;
+  }
+  .maplink:hover { border-color: var(--pine); background: rgba(169, 180, 166, .16); }
+
+  /* ---------- lifeline ---------------------------------------------------- */
+
   .lifeline {
-    max-width: 35em; margin: 22px auto 0;
-    font-size: .92rem; line-height: 1.7; color: var(--muted); text-align: center;
+    margin: 54px auto 0; max-width: var(--prose); text-align: center;
+    background: #dee4db;
+    border: 1px solid #c1cbbd;
+    padding: 26px 28px;
   }
-  .lifeline a { color: var(--accent); text-decoration: underline; }
-  .lifeline b { font-weight: 500; color: var(--ink); white-space: nowrap; }
-  h2 {
-    font-family: "EB Garamond", Georgia, serif; font-weight: 400; font-size: 1.7rem;
-    text-align: center; margin: 72px 0 8px;
+  .lifeline p { margin: 0; font-size: 1.02rem; line-height: 1.7; }
+  .lifeline b { font-weight: 500; white-space: nowrap; }
+  .lifeline a { text-decoration: none; border-bottom: 1px solid #9aa896; }
+  .lifeline a:hover { border-bottom-color: var(--pine); }
+
+  /* ---------- giving ------------------------------------------------------ */
+
+  .giving { margin-top: 62px; }
+  .giving .panel-intro { margin-bottom: 26px; font-size: 1.06rem; }
+
+  .gifts { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .gift {
+    display: flex; flex-direction: column;
+    background: var(--card); border: 1px solid var(--line-soft);
+    padding: 26px 24px 22px; text-decoration: none; color: var(--ink);
+    transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
   }
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin: 28px 0 0; }
-  .grid figure { margin: 0; aspect-ratio: 1; overflow: hidden; background: var(--accent-soft); border-radius: 2px; }
-  .grid img, .grid video { width: 100%; height: 100%; object-fit: cover; display: block; }
-  footer { text-align: center; color: var(--muted); font-size: .85rem; padding: 70px 0 60px; }
-  .sms { font-size: 1.12rem; }
-  .sms b { font-weight: 500; white-space: nowrap; }
-  .sms a { color: inherit; text-decoration: none; border-bottom: 1px solid var(--line); }
-  .sms a:hover { border-bottom-color: var(--accent); }
+  .gift:hover {
+    transform: translateY(-2px); border-color: var(--pine);
+    box-shadow: 0 14px 28px -16px rgba(20, 51, 45, .38);
+  }
+  .gift h3 {
+    font-family: var(--serif); font-weight: 400; font-size: 1.24rem;
+    color: var(--pine); margin: 0 0 8px; line-height: 1.28;
+  }
+  .gift p {
+    font-family: var(--sans); font-size: .86rem; line-height: 1.62;
+    color: var(--sepia); margin: 0 0 20px; flex: 1;
+  }
+  .gift .go {
+    font-family: var(--sans); font-size: .69rem; font-weight: 600;
+    letter-spacing: .14em; text-transform: uppercase; color: var(--pine);
+  }
+  .gift .go::after { content: " \2192"; }
+
+  footer {
+    text-align: center; font-family: var(--sans); font-size: .78rem;
+    color: var(--sepia); opacity: .85; padding: 74px 0 60px;
+  }
+
+  /* ---------- responsive --------------------------------------------------- */
+
+  @media (max-width: 620px) {
+    body { font-size: 16px; }
+    .masthead { padding-top: 34px; }
+    .tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+    .tabs a {
+      padding: 13px 6px; font-size: .655rem; letter-spacing: .08em;
+      text-align: center; white-space: normal;
+    }
+    .tabs a + a + a { border-top: 1px solid var(--line-soft); }
+    .tabs a[aria-selected="true"]::after { left: 50%; right: auto;
+      width: 34px; transform: translateX(-50%); }
+    .card, .event { padding: 26px 20px; }
+    .gifts { grid-template-columns: 1fr; }
+    .panel { padding-top: 36px; }
+  }
+
+  /* ---------- motion -------------------------------------------------------- */
+
+  @media (prefers-reduced-motion: no-preference) {
+    .rise { opacity: 0; transform: translateY(14px); animation: rise .9s cubic-bezier(.22,.61,.36,1) forwards; }
+    .rise.d1 { animation-delay: .12s; }
+    .rise.d2 { animation-delay: .36s; }
+    .rise.d3 { animation-delay: .50s; }
+    @keyframes rise { to { opacity: 1; transform: none; } }
+  }
 </style>
 </head>
 <body>
-<div class="wrap">
 
-  <header>
-    <h1>Benjamin Mark Ewing 2</h1>
-    <p class="dates">2010 &ndash; 2026</p>
-    <hr class="rule">
+<div class="shell">
+
+  <header class="masthead">
+    <div class="mat rise">
+      <img src="/static/benjamin.jpg" width="1920" height="2444"
+           alt="Benjamin Mark Ewing 2, seated in a wooden Windsor chair, wearing a deep green suit.">
+    </div>
+    <p class="credit rise d1">Portrait by David&nbsp;J.&nbsp;Clapp</p>
+    <h1 class="rise d2">Benjamin Mark Ewing 2</h1>
+    <p class="dates rise d3">2010 &ndash; 2026</p>
   </header>
 
-  <section class="obit">
-    <p>Benjamin Mark Ewing 2, 16, took his own life on August 24, 2026. He is the beloved son of his surviving parents, Amy and Mark Ewing. Born in Toledo, OH in 2010, Benjamin moved to Tennessee when he was just 6 months old. On his first birthday, he moved into his first house in Mount Carmel, TN where he laughed and played. Partway through 1st grade, he moved to Kingsport, TN and set about winning the hearts of everyone who met him while he attended Jackson Elementary, Sevier Middle, and Dobyns-Bennet High. Like many in his generation, he struggled during the lockdown of COVID. Despite his own turmoil, Benjamin cared deeply about helping others and was excited to help 3D print and package up more than 40,000 “ear savers” to help frontline workers deal with the pain of constant mask usage. His kindness was boundless to everyone he met.</p>
-    <p>Benjamin had many hobbies, interests, and passions during his life, a few of which were spending time in nature, cooking, and woodworking. As a young child, he was a very picky eater, but as he grew up and began helping cook meals, his palette developed, and he began exploring new and exciting flavors. During the summer, he took great pride in developing custom rubs for pork butts that he would smoke for social gatherings held at his home. He was especially excited about a spice blend he made for an egg competition with his youth group, and he made extra to enjoy with future eggs.</p>
-    <p>As a woodworker, he helped his parents rebuild multiple decks, finish a basement, and as he got older, learned the joys of turning wood which led to him starting his own business at 14, “Ben’s Pens”. He helped his mother teach cutting board classes at the Inventor Center, demonstrated how to use a laser cutter during Made in Kingsport events, and spent multiple spring breaks working with his father to build furniture for his bedroom including a loft bed.</p>
-    <p>Benjamin loved hiking at Bays Mountain, stopping to take time and enjoy the serenity and beauty of the natural landscape. Whether it was special bonding time with his mother, taking his visiting cousin, his grandmothers, or even going up by himself sometimes, he would spend hours photographing all aspects of nature that caught his eye, from a weirdly twisted tree to a caterpillar crossing the trail.</p>
-    <p>Benjamin was a deeply private individual and kept his pain hidden from the people who loved him the most, but he did not let that pain stop him from being kind, caring, and beautiful to everyone he met. He did not realize the scope of the impact that his sense of fun, his generosity, and kindness brought to world, but those he left behind will always remember him and will always love him.</p>
-  </section>
+  <nav class="tabs" role="tablist" aria-label="Sections">
+    <a role="tab" id="tab-photos"      href="#photos"      aria-controls="photos"      aria-selected="true">Share a Photo</a>
+    <a role="tab" id="tab-obituary"    href="#obituary"    aria-controls="obituary"    aria-selected="false">Obituary</a>
+    <a role="tab" id="tab-service"     href="#service"     aria-controls="service"     aria-selected="false">Memorial Service</a>
+    <a role="tab" id="tab-celebration" href="#celebration" aria-controls="celebration" aria-selected="false">Celebration of Life</a>
+  </nav>
 
-  <section class="service">
-    <p>Memorial services will be held on September 12 at 1PM at 100 Canongate Rd, Kingsport, TN. A Celebration of Life event for all ages will be held afterward at The Social at 240 E Main St, Kingsport. In lieu of flowers, his parents ask that you instead consider making a charitable contribution to either the Bays Mountain Park Association (<a href="https://www.friendsofbays.org/donate/in-memoriam-donations/benjamin-ewing-ii-in-memoriam-donations" target="_blank" rel="noopener">https://www.friendsofbays.org/donate/in-memoriam-donations/benjamin-ewing-ii-in-memoriam-donations</a>) or The Inventor Center (<a href="https://zeffy.com/en-US/donation-form/in-loving-memory-of-benjamin-ewing" target="_blank" rel="noopener">https://zeffy.com/en-US/donation-form/in-loving-memory-of-benjamin-ewing</a>)</p>
-  </section>
+  <main>
 
-  <p class="lifeline">
-    If you are struggling, you do not have to carry it alone. The
-    <a href="https://988lifeline.org" target="_blank" rel="noopener">988 Suicide &amp; Crisis Lifeline</a>
-    is free, confidential, and open every hour of every day &mdash;
-    call or text <b>988</b>.
-  </p>
+    <section class="panel" id="photos" role="tabpanel" aria-labelledby="tab-photos" tabindex="-1">
+      <p class="panel-intro">
+        If you have a photo of Benjamin &mdash; any moment, however small &mdash;
+        his family would love to have it.
+      </p>
 
-  <hr class="rule">
+      <div class="card">
+        <div id="form">
+          <div class="drop" id="drop" role="button" tabindex="0"
+               aria-label="Choose photos or videos to add">
+            <strong>Choose photos or videos</strong>
+            <span>or drag them here</span>
+          </div>
+          <input type="file" id="picker" multiple accept="image/*,video/*">
 
-  <p class="lede">
-    If you have a photo of Benjamin &mdash; any moment, however small &mdash;
-    we would love to have it. They are being gathered here for his family.
-  </p>
+          <label class="field" for="uploader">
+            Your name <em>(optional)</em>
+            <input type="text" id="uploader" autocomplete="name" placeholder="So we know who to thank">
+          </label>
 
-  <div class="card">
-    <div id="form">
-      <div class="drop" id="drop">
-        <strong>Choose photos or videos</strong>
-        <span>or drag them here</span>
+          <label class="field" for="note">
+            A memory or note <em>(optional)</em>
+            <textarea id="note" rows="3" placeholder="Where it was taken, what was happening, anything you would like to say"></textarea>
+          </label>
+
+          <div class="queue" id="queue"></div>
+          <button class="btn" id="send" disabled>Add to the collection</button>
+        </div>
+
+        <div class="thanks" id="thanks" hidden>
+          <p>Thank you. It means a great deal.</p>
+          <button class="linkish" id="again">Add another photo</button>
+        </div>
       </div>
-      <input type="file" id="picker" multiple accept="image/*,video/*">
 
-      <label class="field">
-        Your name <em>(optional)</em>
-        <input type="text" id="uploader" autocomplete="name" placeholder="So we know who to thank">
-      </label>
+      <p class="fineprint">
+        Photos go straight to Benjamin&rsquo;s family. They are not shown on this
+        page and are not public.
+      </p>
 
-      <label class="field">
-        A memory or note <em>(optional)</em>
-        <textarea id="note" rows="3" placeholder="Where it was taken, what was happening, anything you would like to say"></textarea>
-      </label>
+      <p class="texting">
+        You can also text photos to
+        <a href="sms:+14238304826">(423)&nbsp;830-4826</a>.
+      </p>
+    </section>
 
-      <div class="queue" id="queue"></div>
-      <button id="send" disabled>Add to the collection</button>
-      <p class="note">Photos stay private and go only to Benjamin's family.</p>
+    <section class="panel" id="obituary" role="tabpanel" aria-labelledby="tab-obituary" tabindex="-1" hidden>
+      <div class="obit">
+        <p>Benjamin Mark Ewing 2, 16, took his own life on August 24, 2026. He is the beloved son of his surviving parents, Amy and Mark Ewing. Born in Toledo, OH in 2010, Benjamin moved to Tennessee when he was just 6 months old. On his first birthday, he moved into his first house in Mount Carmel, TN where he laughed and played. Partway through 1st grade, he moved to Kingsport, TN and set about winning the hearts of everyone who met him while he attended Jackson Elementary, Sevier Middle, and Dobyns-Bennet High. Like many in his generation, he struggled during the lockdown of COVID. Despite his own turmoil, Benjamin cared deeply about helping others and was excited to help 3D print and package up more than 40,000 &ldquo;ear savers&rdquo; to help frontline workers deal with the pain of constant mask usage. His kindness was boundless to everyone he met.</p>
+
+        <p>Benjamin had many hobbies, interests, and passions during his life, a few of which were spending time in nature, cooking, and woodworking. As a young child, he was a very picky eater, but as he grew up and began helping cook meals, his palette developed, and he began exploring new and exciting flavors. During the summer, he took great pride in developing custom rubs for pork butts that he would smoke for social gatherings held at his home. He was especially excited about a spice blend he made for an egg competition with his youth group, and he made extra to enjoy with future eggs.</p>
+
+        <p>As a woodworker, he helped his parents rebuild multiple decks, finish a basement, and as he got older, learned the joys of turning wood which led to him starting his own business at 14, &ldquo;Ben&rsquo;s Pens&rdquo;. He helped his mother teach cutting board classes at the Inventor Center, demonstrated how to use a laser cutter during Made in Kingsport events, and spent multiple spring breaks working with his father to build furniture for his bedroom including a loft bed.</p>
+
+        <p>Benjamin loved hiking at Bays Mountain, stopping to take time and enjoy the serenity and beauty of the natural landscape. Whether it was special bonding time with his mother, taking his visiting cousin, his grandmothers, or even going up by himself sometimes, he would spend hours photographing all aspects of nature that caught his eye, from a weirdly twisted tree to a caterpillar crossing the trail.</p>
+
+        <p>Benjamin was a deeply private individual and kept his pain hidden from the people who loved him the most, but he did not let that pain stop him from being kind, caring, and beautiful to everyone he met. He did not realize the scope of the impact that his sense of fun, his generosity, and kindness brought to world, but those he left behind will always remember him and will always love him.</p>
+      </div>
+    </section>
+
+    <section class="panel" id="service" role="tabpanel" aria-labelledby="tab-service" tabindex="-1" hidden>
+      <div class="event">
+        <p class="eyebrow">Memorial Service</p>
+        <p class="when">Saturday, September 12, 2026</p>
+        <p class="time">1:00 in the afternoon</p>
+        <hr>
+        <p class="where">100 Canongate Rd</p>
+        <p class="addr">Kingsport, Tennessee</p>
+        <a class="maplink" href="https://maps.google.com/?q=100+Canongate+Rd,+Kingsport,+TN"
+           target="_blank" rel="noopener">Open in maps</a>
+        <p class="note">All who knew Benjamin are welcome.</p>
+      </div>
+    </section>
+
+    <section class="panel" id="celebration" role="tabpanel" aria-labelledby="tab-celebration" tabindex="-1" hidden>
+      <div class="event">
+        <p class="eyebrow">Celebration of Life</p>
+        <p class="when">Following the memorial service</p>
+        <p class="time">Saturday, September 12, 2026</p>
+        <hr>
+        <p class="where">The Social</p>
+        <p class="addr">240 E Main St, Kingsport, Tennessee</p>
+        <a class="maplink" href="https://maps.google.com/?q=The+Social,+240+E+Main+St,+Kingsport,+TN"
+           target="_blank" rel="noopener">Open in maps</a>
+        <p class="note">An event for all ages. Come as you are.</p>
+      </div>
+    </section>
+
+  </main>
+
+  <section class="lifeline">
+    <p>
+      If you are struggling, you do not have to carry it alone. The
+      <a href="https://988lifeline.org" target="_blank" rel="noopener">988 Suicide &amp; Crisis Lifeline</a>
+      is free, confidential, and open every hour of every day &mdash;
+      call or text <b>988</b>.
+    </p>
+  </section>
+
+  <section class="giving">
+    <h2>In lieu of flowers</h2>
+    <p class="panel-intro">
+      His parents ask that you consider a gift to one of the two places
+      Benjamin loved most.
+    </p>
+    <div class="gifts">
+      <a class="gift" target="_blank" rel="noopener"
+         href="https://www.friendsofbays.org/donate/in-memoriam-donations/benjamin-ewing-ii-in-memoriam-donations">
+        <h3>Bays Mountain Park Association</h3>
+        <p>Where he hiked for hours, photographing whatever caught his eye &mdash;
+           a weirdly twisted tree, a caterpillar crossing the trail.</p>
+        <span class="go">Give in his memory</span>
+      </a>
+      <a class="gift" target="_blank" rel="noopener"
+         href="https://zeffy.com/en-US/donation-form/in-loving-memory-of-benjamin-ewing">
+        <h3>The Inventor Center</h3>
+        <p>Where he helped teach cutting board classes and showed people how
+           to use the laser cutter.</p>
+        <span class="go">Give in his memory</span>
+      </a>
     </div>
+  </section>
 
-    <div class="thanks" id="thanks" hidden>
-      <p>Thank you. It means a great deal.</p>
-      <button class="linkish" id="again">Add more photos</button>
-    </div>
-  </div>
+  <footer>Held for Benjamin&rsquo;s family.</footer>
 
-  <p class="lede sms">
-    You can also text photos to
-    <a href="sms:+14238304826"><b>(423)&nbsp;830-4826</b></a>.
-  </p>
-
-  <h2>What's been shared</h2>
-  <div class="grid" id="grid"></div>
-  <p class="note" id="empty" hidden>Nothing yet &mdash; yours would be the first.</p>
-
-  <footer>Held for Benjamin's family.</footer>
 </div>
 
 <script>
+/* --------------------------------------------------------------- tabs ----
+   Hash-based, so one section can be shared on its own: sending someone
+   /#service should land them on the service details, not the front. */
+const tabs   = Array.from(document.querySelectorAll('[role="tab"]'));
+const panels = Array.from(document.querySelectorAll('[role="tabpanel"]'));
+
+function show(name, opts) {
+  opts = opts || {};
+  if (!panels.some(p => p.id === name)) name = 'photos';
+  tabs.forEach(t => t.setAttribute('aria-selected',
+    String(t.getAttribute('aria-controls') === name)));
+  panels.forEach(p => { p.hidden = (p.id !== name); });
+  const active = tabs.find(t => t.getAttribute('aria-controls') === name);
+  if (opts.focus && active) active.focus();
+  if (opts.scroll) {
+    const y = document.querySelector('.tabs').getBoundingClientRect().top + window.scrollY - 8;
+    if (window.scrollY > y) window.scrollTo({top: y, behavior: 'smooth'});
+  }
+}
+
+tabs.forEach((tab, i) => {
+  tab.addEventListener('click', e => {
+    e.preventDefault();
+    const name = tab.getAttribute('aria-controls');
+    history.replaceState(null, '', '#' + name);
+    show(name, {scroll: true});
+  });
+  tab.addEventListener('keydown', e => {
+    const step = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+    if (!step) return;
+    e.preventDefault();
+    const next = tabs[(i + step + tabs.length) % tabs.length];
+    const name = next.getAttribute('aria-controls');
+    history.replaceState(null, '', '#' + name);
+    show(name, {focus: true});
+  });
+});
+
+window.addEventListener('hashchange', () => show(location.hash.slice(1)));
+show(location.hash.slice(1) || 'photos');
+
+/* ------------------------------------------------------------- upload ---- */
 const picker = document.getElementById('picker');
 const drop   = document.getElementById('drop');
 const queue  = document.getElementById('queue');
@@ -231,13 +547,14 @@ const thanks = document.getElementById('thanks');
 let files = [];
 
 drop.addEventListener('click', () => picker.click());
+drop.addEventListener('keydown', e => {
+  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); picker.click(); }
+});
 ['dragenter', 'dragover'].forEach(e => drop.addEventListener(e, ev => {
-  ev.preventDefault();
-  drop.classList.add('over');
+  ev.preventDefault(); drop.classList.add('over');
 }));
 ['dragleave', 'drop'].forEach(e => drop.addEventListener(e, ev => {
-  ev.preventDefault();
-  drop.classList.remove('over');
+  ev.preventDefault(); drop.classList.remove('over');
 }));
 drop.addEventListener('drop', ev => addFiles(ev.dataTransfer.files));
 picker.addEventListener('change', () => addFiles(picker.files));
@@ -289,93 +606,50 @@ send.addEventListener('click', async () => {
   const payload = {
     uploader: document.getElementById('uploader').value,
     note: document.getElementById('note').value,
-    files: files.map(f => ({ name: f.name, type: f.type, size: f.size })),
+    files: files.map(f => ({name: f.name, type: f.type, size: f.size}))
   };
 
-  let signed;
+  let plan;
   try {
     const r = await fetch('/api/presign', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(payload)
     });
-    const data = await r.json();
-    if (!r.ok) throw new Error(data.detail || 'could not start the upload');
-    signed = data.files;
+    if (!r.ok) throw new Error('presign failed');
+    plan = (await r.json()).files;
   } catch (err) {
-    alert('Something went wrong starting the upload: ' + err.message);
     send.disabled = false;
+    send.textContent = 'Something went wrong. Try again.';
     return;
   }
 
-  let ok = 0;
-  await Promise.all(files.map(async (f, i) => {
+  let failed = 0;
+  await Promise.all(files.map((f, i) => {
     const st = document.getElementById('s' + i);
-    const p  = document.getElementById('p' + i);
+    const pb = document.getElementById('p' + i);
     st.textContent = 'sending';
-    try {
-      await putFile(signed[i].url, f, frac => { p.style.width = (frac * 100) + '%'; });
-      p.style.width = '100%';
-      st.textContent = 'added';
-      st.className = 'st done';
-      ok++;
-    } catch (err) {
-      st.textContent = 'failed';
-      st.className = 'st err';
-    }
+    return putFile(plan[i].url, f, p => { pb.style.width = (p * 100) + '%'; })
+      .then(() => { st.textContent = 'added'; st.className = 'st done'; pb.style.width = '100%'; })
+      .catch(() => { st.textContent = 'failed'; st.className = 'st err'; failed++; });
   }));
 
-  if (ok > 0) {
+  if (failed < files.length) {
     form.hidden = true;
     thanks.hidden = false;
-    loadGallery();
   } else {
     send.disabled = false;
+    send.textContent = 'Try again';
   }
 });
 
 document.getElementById('again').addEventListener('click', () => {
   files = [];
-  picker.value = '';
   render();
   document.getElementById('note').value = '';
   thanks.hidden = true;
   form.hidden = false;
 });
-
-async function loadGallery() {
-  try {
-    const r = await fetch('/api/gallery');
-    const { items } = await r.json();
-    const grid = document.getElementById('grid');
-    grid.innerHTML = '';
-    document.getElementById('empty').hidden = items.length > 0;
-    for (const it of items) {
-      const fig = document.createElement('figure');
-      if (it.kind === 'video') {
-        const v = document.createElement('video');
-        v.src = it.url;
-        v.muted = true;
-        v.playsInline = true;
-        v.controls = true;
-        fig.appendChild(v);
-      } else {
-        const img = document.createElement('img');
-        img.src = it.url;
-        img.loading = 'lazy';
-        img.alt = it.caption || 'A photo of Benjamin';
-        fig.appendChild(img);
-      }
-      if (it.caption) fig.title = it.caption;
-      grid.appendChild(fig);
-    }
-  } catch (err) {
-    console.error('could not load the gallery', err);
-  }
-}
-
-render();
-loadGallery();
 </script>
 </body>
 </html>

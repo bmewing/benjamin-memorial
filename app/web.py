@@ -8,6 +8,7 @@ import json
 import logging
 import os
 import re
+import secrets
 import unicodedata
 import uuid
 from concurrent.futures import ThreadPoolExecutor
@@ -29,6 +30,11 @@ ALLOWED_PREFIXES = ("image/", "video/")
 MAX_BYTES = 512 * 1024 * 1024  # 512 MB, generous enough for phone video
 UPLOAD_URL_TTL = 60 * 60       # 1 hour to finish an upload
 VIEW_URL_TTL = 60 * 60 * 6     # 6 hours for a gallery link
+
+# The page does not show what people upload -- the photos are the family's, not
+# an exhibit. The listing endpoint stays closed unless a key is set, so nobody
+# can enumerate the collection by guessing the URL.
+GALLERY_KEY = os.environ.get("GALLERY_KEY", "").strip()
 
 router = APIRouter()
 
@@ -109,7 +115,11 @@ async def presign(req: PresignRequest) -> dict:
 
 
 @router.get("/api/gallery")
-async def gallery(limit: int = 300) -> dict:
+async def gallery(key: str = "", limit: int = 300) -> dict:
+    """List what has come in. Closed unless GALLERY_KEY is set and matches."""
+    if not GALLERY_KEY or not secrets.compare_digest(key, GALLERY_KEY):
+        raise HTTPException(404, "Not found.")
+
     s3 = storage.client()
     items = []
 

@@ -9,7 +9,10 @@ app's root URL -- see sms.py for why that matters to signature checking.
 """
 import logging
 
+from pathlib import Path
+
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 
 import sms
 import storage
@@ -19,6 +22,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(mess
 
 app = FastAPI(title="Benjamin Memorial")
 
+app.mount("/static", StaticFiles(directory=Path(__file__).parent / "static"), name="static")
 app.include_router(web.router)
 app.include_router(sms.router)
 
