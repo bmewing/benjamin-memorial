@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>What has come in</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;1,6..72,400&family=Karla:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --pine: #14332d; --sepia: #6b5747; --sage: #a9b4a6;
+    --ground: #e8e7df; --card: #f4f3ee; --ink: #2a2621;
+    --line: #d3d2c8; --line-soft: #dedcd3;
+    --serif: "Newsreader", Georgia, serif;
+    --sans: "Karla", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--ground); color: var(--ink);
+    font-family: var(--serif); font-size: 17px; line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 0 24px 90px; }
+
+  header { text-align: center; padding: 52px 0 30px; }
+  h1 {
+    font-family: var(--serif); font-weight: 300; font-size: 2.2rem;
+    color: var(--pine); margin: 0 0 8px;
+  }
+  .sub {
+    font-family: var(--sans); font-size: .74rem; font-weight: 600;
+    letter-spacing: .15em; text-transform: uppercase; color: var(--sepia);
+    margin: 0;
+  }
+  .bar {
+    display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+    justify-content: center;
+    border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+    padding: 14px 0; margin-bottom: 34px;
+  }
+  .count { font-family: var(--sans); font-size: .8rem; color: var(--sepia); }
+  .filter {
+    font-family: var(--sans); font-size: .7rem; font-weight: 600;
+    letter-spacing: .12em; text-transform: uppercase;
+    background: none; border: 1px solid var(--line); color: var(--sepia);
+    padding: 8px 14px; cursor: pointer;
+  }
+  .filter[aria-pressed="true"] { background: var(--pine); border-color: var(--pine); color: var(--card); }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 18px;
+  }
+  figure {
+    margin: 0; background: var(--card); border: 1px solid var(--line-soft);
+    display: flex; flex-direction: column;
+  }
+  figure a.shot { display: block; }
+  figure img, figure video {
+    display: block; width: 100%; aspect-ratio: 1; object-fit: cover;
+    background: #dcdbd2;
+  }
+  figcaption { padding: 14px 15px 15px; }
+  .who {
+    font-family: var(--sans); font-size: .72rem; font-weight: 600;
+    letter-spacing: .1em; text-transform: uppercase; color: var(--pine);
+    margin: 0 0 5px;
+  }
+  .said { margin: 0 0 9px; font-size: .98rem; line-height: 1.55; }
+  .said.none { color: var(--sepia); font-style: italic; opacity: .7; }
+  .meta {
+    font-family: var(--sans); font-size: .68rem; color: var(--sepia);
+    letter-spacing: .04em; margin: 0; opacity: .85;
+  }
+  .tag {
+    display: inline-block; font-family: var(--sans); font-size: .6rem;
+    font-weight: 600; letter-spacing: .12em; text-transform: uppercase;
+    border: 1px solid var(--sage); color: var(--sepia);
+    padding: 1px 6px; margin-left: 6px;
+  }
+  .state {
+    text-align: center; color: var(--sepia); padding: 70px 0;
+    font-size: 1.1rem;
+  }
+  .note {
+    font-family: var(--sans); font-size: .78rem; color: var(--sepia);
+    text-align: center; margin-top: 40px; opacity: .8;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>What has come in</h1>
+    <p class="sub">For Benjamin &middot; private</p>
+  </header>
+
+  <div class="bar">
+    <span class="count" id="count">Loading&hellip;</span>
+    <button class="filter" id="f-all"  aria-pressed="true">Everything</button>
+    <button class="filter" id="f-sms"  aria-pressed="false">Texted</button>
+    <button class="filter" id="f-web"  aria-pressed="false">Uploaded</button>
+  </div>
+
+  <div class="grid" id="grid"></div>
+  <p class="state" id="state" hidden></p>
+
+  <p class="note">
+    Links here expire after a few hours &mdash; reload the page for fresh ones.
+    Run <code>scripts/download_all.py</code> to keep your own copy.
+  </p>
+
+</div>
+
+<script>
+const KEY   = new URLSearchParams(location.search).get('key') || '';
+const grid  = document.getElementById('grid');
+const state = document.getElementById('state');
+const count = document.getElementById('count');
+let items = [];
+let filter = 'all';
+
+function say(msg) { state.hidden = false; state.textContent = msg; }
+
+function when(iso) {
+  const d = new Date(iso);
+  return d.toLocaleString(undefined, {
+    month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'
+  });
+}
+
+function phone(raw) {
+  const m = /^\+1(\d{3})(\d{3})(\d{4})$/.exec(raw || '');
+  return m ? `(${m[1]}) ${m[2]}-${m[3]}` : raw;
+}
+
+function draw() {
+  const shown = items.filter(i => filter === 'all' || i.source === filter);
+  count.textContent = shown.length + (shown.length === 1 ? ' item' : ' items');
+  grid.innerHTML = '';
+
+  if (!shown.length) { say('Nothing here yet.'); return; }
+  state.hidden = true;
+
+  for (const i of shown) {
+    const fig = document.createElement('figure');
+
+    const a = document.createElement('a');
+    a.className = 'shot';
+    a.href = i.url;
+    a.target = '_blank';
+    a.rel = 'noopener';
+    if (i.kind === 'video') {
+      const v = document.createElement('video');
+      v.src = i.url; v.controls = true; v.preload = 'metadata';
+      a.appendChild(v);
+    } else {
+      const img = document.createElement('img');
+      img.src = i.url; img.loading = 'lazy'; img.alt = '';
+      a.appendChild(img);
+    }
+    fig.appendChild(a);
+
+    const cap = document.createElement('figcaption');
+
+    const who = document.createElement('p');
+    who.className = 'who';
+    who.textContent = i.from ? (i.source === 'sms' ? phone(i.from) : i.from) : 'Not signed';
+    cap.appendChild(who);
+
+    const said = document.createElement('p');
+    said.className = i.caption ? 'said' : 'said none';
+    said.textContent = i.caption || 'No message';
+    cap.appendChild(said);
+
+    const meta = document.createElement('p');
+    meta.className = 'meta';
+    meta.textContent = when(i.when);
+    const tag = document.createElement('span');
+    tag.className = 'tag';
+    tag.textContent = i.source === 'sms' ? 'texted' : 'uploaded';
+    meta.appendChild(tag);
+    cap.appendChild(meta);
+
+    fig.appendChild(cap);
+    grid.appendChild(fig);
+  }
+}
+
+for (const [id, val] of [['f-all','all'], ['f-sms','sms'], ['f-web','web']]) {
+  document.getElementById(id).addEventListener('click', () => {
+    filter = val;
+    for (const other of ['f-all','f-sms','f-web']) {
+      document.getElementById(other).setAttribute('aria-pressed', String(other === id));
+    }
+    draw();
+  });
+}
+
+(async () => {
+  try {
+    const r = await fetch('/api/gallery?key=' + encodeURIComponent(KEY));
+    if (!r.ok) { say('That link is not valid.'); count.textContent = ''; return; }
+    items = (await r.json()).items;
+    draw();
+  } catch (err) {
+    say('Could not load. Try reloading.');
+    count.textContent = '';
+  }
+})();
+</script>
+</body>
+</html>

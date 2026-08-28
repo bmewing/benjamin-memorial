@@ -19,6 +19,9 @@ domains:
   - domain: benjaminmarkewing2.com
     type: PRIMARY
     zone: benjaminmarkewing2.com
+  - domain: www.benjaminmarkewing2.com
+    type: ALIAS
+    zone: benjaminmarkewing2.com
 
 services:
   - name: web
@@ -53,6 +56,9 @@ services:
         scope: RUN_TIME
         type: SECRET
       - key: TWILIO_AUTH_TOKEN
+        scope: RUN_TIME
+        type: SECRET
+      - key: GALLERY_KEY
         scope: RUN_TIME
         type: SECRET
       - key: PUBLIC_BASE_URL

@@ -121,36 +121,61 @@ async def gallery(key: str = "", limit: int = 300) -> dict:
         raise HTTPException(404, "Not found.")
 
     s3 = storage.client()
-    items = []
+    items: list[dict] = []
 
     paginator = s3.get_paginator("list_objects_v2")
     for page in paginator.paginate(Bucket=storage.BUCKET):
         for obj in page.get("Contents", []):
-            key = obj["Key"]
-            if key.endswith(".json") or obj["Size"] == 0:
+            k = obj["Key"]
+            if k.endswith(".json") or obj["Size"] == 0:
                 continue
-            items.append({"key": key, "when": obj["LastModified"], "size": obj["Size"]})
+            items.append({"key": k, "when": obj["LastModified"], "size": obj["Size"]})
 
     items.sort(key=lambda o: o["when"], reverse=True)
     items = items[:limit]
 
-    def decorate(item: dict) -> dict:
+    def sidecar_for(k: str) -> str:
+        """web/2026-09-14/8dfc5c3b-00-photo.jpg -> web/2026-09-14/8dfc5c3b-about.json"""
+        head, _, name = k.rpartition("/")
+        return f"{head}/{name.split('-')[0]}-about.json"
+
+    # A texted photo carries its sender and words as object metadata, but a web
+    # upload goes browser-to-Spaces and cannot, so those live in one sidecar per
+    # batch. Read them, or the notes people wrote never surface anywhere.
+    def load_sidecar(sk: str) -> tuple[str, dict]:
         try:
-            head = s3.head_object(Bucket=storage.BUCKET, Key=item["key"])
+            body = s3.get_object(Bucket=storage.BUCKET, Key=sk)["Body"].read()
+            return sk, json.loads(body)
+        except Exception:
+            return sk, {}
+
+    wanted = {sidecar_for(i["key"]) for i in items if i["key"].startswith("web/")}
+    notes: dict[str, dict] = {}
+    if wanted:
+        with ThreadPoolExecutor(max_workers=16) as pool:
+            notes = dict(pool.map(load_sidecar, wanted))
+
+    def decorate(item: dict) -> dict:
+        k = item["key"]
+        try:
+            head = s3.head_object(Bucket=storage.BUCKET, Key=k)
             meta = head.get("Metadata", {})
             content_type = head.get("ContentType", "")
         except Exception:
             meta, content_type = {}, ""
+
+        note = notes.get(sidecar_for(k), {}) if k.startswith("web/") else {}
         return {
-            "key": item["key"],
+            "key": k,
             "when": item["when"].isoformat(),
+            "size": item["size"],
             "kind": "video" if content_type.startswith("video/") else "image",
-            "caption": meta.get("caption", ""),
-            "from": meta.get("from", ""),
-            "source": meta.get("source", "web"),
+            "caption": meta.get("caption") or note.get("note", ""),
+            "from": meta.get("from") or note.get("uploader", ""),
+            "source": meta.get("source") or ("sms" if k.startswith("sms/") else "web"),
             "url": s3.generate_presigned_url(
                 "get_object",
-                Params={"Bucket": storage.BUCKET, "Key": item["key"]},
+                Params={"Bucket": storage.BUCKET, "Key": k},
                 ExpiresIn=VIEW_URL_TTL,
             ),
         }
@@ -159,3 +184,11 @@ async def gallery(key: str = "", limit: int = 300) -> dict:
         decorated = list(pool.map(decorate, items))
 
     return {"count": len(decorated), "items": decorated}
+
+
+@router.get("/private")
+async def private_gallery(key: str = "") -> FileResponse:
+    """The family's view of what has arrived. Same key as the API."""
+    if not GALLERY_KEY or not secrets.compare_digest(key, GALLERY_KEY):
+        raise HTTPException(404, "Not found.")
+    return FileResponse(STATIC / "private.html")
