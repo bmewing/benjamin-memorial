@@ -107,6 +107,29 @@
     text-transform: uppercase; color: var(--sepia); opacity: .7; margin: 0 0 6px;
   }
 
+  .acts {
+    display: flex; gap: 8px; margin-top: 12px;
+    padding-top: 12px; border-top: 1px solid var(--line-soft);
+  }
+  .act {
+    flex: 1; font-family: var(--sans); font-size: .66rem; font-weight: 600;
+    letter-spacing: .1em; text-transform: uppercase; cursor: pointer;
+    background: none; border: 1px solid var(--line); color: var(--sepia);
+    padding: 8px 6px; transition: border-color .15s ease, color .15s ease;
+  }
+  .act:hover { border-color: var(--pine); color: var(--pine); }
+  .act.keep[disabled] { opacity: .5; cursor: default; border-color: var(--line); color: var(--sepia); }
+  .act.danger:hover { border-color: #8a3f32; color: #8a3f32; }
+  .act.arming { border-color: #8a3f32; color: #8a3f32; background: rgba(138,63,50,.07); }
+  .act.busy { opacity: .55; cursor: default; }
+  figure.gone { opacity: .35; }
+  figure.gone .acts { display: none; }
+  .gonemsg {
+    font-family: var(--sans); font-size: .68rem; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--sepia); margin: 12px 0 0;
+    padding-top: 12px; border-top: 1px solid var(--line-soft);
+  }
+
   .state {
     text-align: center; color: var(--sepia); padding: 70px 0;
     font-size: 1.1rem;
@@ -251,9 +274,79 @@ function draw() {
     meta.appendChild(tag);
     cap.appendChild(meta);
 
+    // Deciding about a photo is a person's job; the screener only sorts the
+    // queue. Keep is one click, removing takes two.
+    const acts = document.createElement('div');
+    acts.className = 'acts';
+
+    const keep = document.createElement('button');
+    keep.className = 'act keep';
+    keep.textContent = flagged(i) ? 'This is fine' : 'Fine';
+    keep.disabled = !flagged(i);
+    keep.addEventListener('click', () => act(keep, '/api/item/keep', i, fig, () => {
+      i.concern = 'none'; i.flags = []; i.review_note = '';
+      draw();
+    }));
+
+    const del = document.createElement('button');
+    del.className = 'act danger';
+    del.textContent = 'Remove';
+    let armed = false;
+    del.addEventListener('click', () => {
+      if (!armed) {
+        armed = true;
+        del.textContent = 'Really remove?';
+        del.classList.add('arming');
+        setTimeout(() => {
+          if (!armed) return;
+          armed = false; del.textContent = 'Remove'; del.classList.remove('arming');
+        }, 5000);
+        return;
+      }
+      armed = false;
+      act(del, '/api/item/remove', i, fig, () => {
+        fig.classList.add('gone');
+        const msg = document.createElement('p');
+        msg.className = 'gonemsg';
+        msg.textContent = 'Removed';
+        cap.appendChild(msg);
+        items = items.filter(x => x.key !== i.key);
+        count.textContent = items.length + (items.length === 1 ? ' item' : ' items');
+        refreshFlagCount();
+      });
+    });
+
+    acts.append(keep, del);
+    cap.appendChild(acts);
+
     fig.appendChild(cap);
     grid.appendChild(fig);
   }
+}
+
+async function act(btn, url, item, fig, done) {
+  btn.classList.add('busy');
+  btn.disabled = true;
+  try {
+    const r = await fetch(url + '?key=' + encodeURIComponent(KEY), {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({item: item.key})
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    done();
+  } catch (err) {
+    btn.classList.remove('busy');
+    btn.disabled = false;
+    btn.textContent = 'Did not work';
+    setTimeout(() => { btn.textContent = url.endsWith('keep') ? 'This is fine' : 'Remove'; }, 2500);
+  }
+}
+
+function refreshFlagCount() {
+  const n = items.filter(flagged).length;
+  document.getElementById('f-flag').textContent =
+    n ? 'Needs a look · ' + n : 'Needs a look';
 }
 
 for (const [id, val] of [['f-all','all'], ['f-sms','sms'], ['f-web','web'], ['f-flag','flag']]) {
@@ -271,9 +364,7 @@ for (const [id, val] of [['f-all','all'], ['f-sms','sms'], ['f-web','web'], ['f-
     const r = await fetch('/api/gallery?key=' + encodeURIComponent(KEY));
     if (!r.ok) { say('That link is not valid.'); count.textContent = ''; return; }
     items = (await r.json()).items;
-    const n = items.filter(flagged).length;
-    if (n) document.getElementById('f-flag').textContent =
-      'Needs a look · ' + n;
+    refreshFlagCount();
     draw();
   } catch (err) {
     say('Could not load. Try reloading.');

@@ -58,6 +58,19 @@ of a place, an object, a pet, a group of people, or a much younger Benjamin is \
 completely normal and expected. Flag only what a reasonable person would agree \
 his parents should be warned about before seeing.
 
+Things Benjamin made and did, which people are sending in and which are \
+precious to his family. None of this is ever spam:
+- Woodturning. He ran a small business called "Ben's Pens" and sold turned \
+pens, cutting boards, coasters and boxes at craft markets. Photos of his \
+stall, his products, price signs and handwritten labels are his own work.
+- Cooking and smoking meat, spice rubs, food at gatherings.
+- Hiking and nature photography at Bays Mountain: trees, trails, insects.
+- Laser cutting and 3D printing at a makerspace called the Inventor Center.
+
+"Spam" means a stranger advertising something unrelated to Benjamin, or a \
+scam or phishing link. A photograph of something Benjamin made himself, even \
+with a price on it, is the opposite of spam.
+
 Reply with JSON only, no prose, in exactly this shape:
 {"concern": "none" | "review" | "serious",
  "flags": [],
@@ -191,6 +204,17 @@ def review_key(storage, key: str, caption: str = "", sender: str = "") -> dict:
         log.exception("could not read %s for screening", key)
         return _verdict("unreviewed", "Could not read the file to screen it.",
                         flags=["error"])
+
+    # If a person has already looked at this and said it is fine, leave their
+    # decision alone. A later sweep must not quietly re-flag what they cleared.
+    try:
+        prior = json.loads(s3.get_object(Bucket=storage.BUCKET,
+                                         Key=key + REVIEW_SUFFIX)["Body"].read())
+        if prior.get("cleared_by_human"):
+            log.info("%s was cleared by a person; not re-screening", key)
+            return prior
+    except Exception:
+        pass
 
     verdict = review(data, content_type,
                      caption or meta.get("caption", ""),

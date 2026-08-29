@@ -152,6 +152,8 @@ async def gallery(key: str = "", limit: int = 300) -> dict:
             k = obj["Key"]
             if k.endswith(".json") or obj["Size"] == 0:
                 continue  # covers the .review.json verdicts too
+            if k.startswith("removed/"):
+                continue  # taken out of the collection deliberately
             items.append({"key": k, "when": obj["LastModified"], "size": obj["Size"]})
 
     items.sort(key=lambda o: o["when"], reverse=True)
@@ -217,6 +219,82 @@ async def gallery(key: str = "", limit: int = 300) -> dict:
         decorated = list(pool.map(decorate, items))
 
     return {"count": len(decorated), "items": decorated}
+
+
+class ItemRequest(BaseModel):
+    item: str = Field(max_length=400)
+
+
+def _guard(key: str) -> None:
+    if not GALLERY_KEY or not secrets.compare_digest(key, GALLERY_KEY):
+        raise HTTPException(404, "Not found.")
+
+
+def _sane(item: str) -> str:
+    """Only ever act on a real photo key, never a path we did not write."""
+    if (not item.startswith(("sms/", "web/"))
+            or item.endswith(".json") or ".." in item):
+        raise HTTPException(400, "Not a photo.")
+    return item
+
+
+@router.post("/api/item/keep")
+async def keep_item(req: ItemRequest, key: str = "") -> dict:
+    """Mark a flagged item as fine. Records that a person decided, not a model."""
+    _guard(key)
+    item = _sane(req.item)
+    s3 = storage.client()
+
+    try:
+        verdict = json.loads(s3.get_object(
+            Bucket=storage.BUCKET,
+            Key=item + moderation.REVIEW_SUFFIX)["Body"].read())
+    except Exception:
+        verdict = {}
+
+    verdict.update({
+        "concern": "none",
+        "flags": [],
+        "note": "",
+        "cleared_by_human": True,
+        "cleared_at": datetime.now(timezone.utc).isoformat(),
+        "was": verdict.get("concern", "unreviewed"),
+        "was_note": verdict.get("note", ""),
+    })
+    s3.put_object(Bucket=storage.BUCKET, Key=item + moderation.REVIEW_SUFFIX,
+                  Body=json.dumps(verdict, indent=2).encode(),
+                  ContentType="application/json")
+    log.info("kept %s (was %s)", item, verdict["was"])
+    return {"ok": True, "item": item}
+
+
+@router.post("/api/item/remove")
+async def remove_item(req: ItemRequest, key: str = "") -> dict:
+    """Take an item out of the collection.
+
+    It is moved under removed/ rather than erased. Deleting the wrong photo
+    is the one mistake here that cannot be undone, and nothing about spam is
+    urgent enough to be worth that risk. Emptying removed/ is a deliberate,
+    separate act -- see scripts/purge_removed.py.
+    """
+    _guard(key)
+    item = _sane(req.item)
+    s3 = storage.client()
+
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S")
+    for suffix in ("", moderation.REVIEW_SUFFIX):
+        src, dst = item + suffix, f"removed/{stamp}/{item}{suffix}"
+        try:
+            s3.copy_object(Bucket=storage.BUCKET, Key=dst,
+                           CopySource={"Bucket": storage.BUCKET, "Key": src})
+            s3.delete_object(Bucket=storage.BUCKET, Key=src)
+        except Exception:
+            if not suffix:                       # the photo itself must move
+                log.exception("could not remove %s", src)
+                raise HTTPException(500, "Could not remove it.")
+
+    log.info("removed %s -> removed/%s/", item, stamp)
+    return {"ok": True, "item": item, "moved_to": f"removed/{stamp}/{item}"}
 
 
 @router.get("/private")
