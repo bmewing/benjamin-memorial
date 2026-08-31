@@ -11,3 +11,8 @@ downloads/
 # tracked; anything else under .do/ stays out.
 .do/*.yaml
 !.do/app.yaml
+
+# Source documents for the obituary and the printed program. Their content
+# lives on the site; the files themselves stay local.
+*.docx
+*.pdf
