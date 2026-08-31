@@ -277,6 +277,71 @@
   }
   .maplink:hover { border-color: var(--pine); background: rgba(169, 180, 166, .16); }
 
+  /* ---------- order of service, and what to expect ------------------------ */
+
+  .program { max-width: 30em; margin: 40px auto 0; }
+  .program .eyebrow { text-align: center; }
+  .program-title {
+    font-family: var(--serif); font-weight: 300; font-size: 1.42rem;
+    color: var(--pine); text-align: center; margin: 0 0 10px;
+  }
+  .program-lede {
+    font-family: var(--sans); font-size: .82rem; line-height: 1.7;
+    color: var(--sepia); text-align: center; margin: 0 auto 22px;
+    max-width: 26em;
+  }
+
+  .listing {
+    list-style: none; margin: 0; padding: 0;
+    background: var(--card); border: 1px solid var(--line-soft);
+  }
+  .listing > li {
+    display: grid; grid-template-columns: 1.9em 1fr; gap: 0 14px;
+    align-items: baseline;
+    padding: 15px 20px; border-top: 1px solid var(--line-soft);
+  }
+  .listing > li:first-child { border-top: 0; }
+
+  .listing .mark {
+    font-family: var(--serif); font-weight: 300; font-size: 1.55rem;
+    line-height: 1; color: #8b9a88; text-align: center;
+  }
+  .listing h3 {
+    font-family: var(--serif); font-weight: 400; font-size: 1.1rem;
+    color: var(--pine); line-height: 1.32; margin: 0;
+  }
+  .listing .who {
+    font-family: var(--serif); font-style: italic; font-size: .95rem;
+    color: var(--sepia); margin: 1px 0 0;
+  }
+  .listing .gloss {
+    font-family: var(--sans); font-size: .8rem; line-height: 1.65;
+    color: var(--sepia); margin: 6px 0 0;
+  }
+  .listing p { margin: 0; }
+
+  .listing .bookend { background: rgba(169, 180, 166, .15); }
+  .listing .bookend h3 { font-weight: 400; }
+
+  .listing .interlude {
+    grid-template-columns: 1fr; justify-items: center; text-align: center;
+    background: rgba(169, 180, 166, .08);
+  }
+  .listing .interlude h3 {
+    font-style: italic; font-size: 1.02rem; color: var(--sepia);
+  }
+  .listing .interlude .who {
+    font-family: var(--sans); font-style: normal;
+    font-size: .68rem; font-weight: 600; letter-spacing: .15em;
+    text-transform: uppercase; color: var(--sepia); margin-top: 4px;
+  }
+
+  .listing.plain > li { grid-template-columns: 1fr; }
+  .listing.plain p {
+    font-family: var(--serif); font-size: 1rem; line-height: 1.68;
+    color: var(--ink); margin: 4px 0 0;
+  }
+
   /* ---------- lifeline ---------------------------------------------------- */
 
   .lifeline {
@@ -334,6 +399,7 @@
     .tabs a[aria-selected="true"]::after { left: 50%; right: auto;
       width: 34px; transform: translateX(-50%); }
     .card, .event { padding: 26px 20px; }
+    .listing > li { padding: 14px 16px; }
     .gifts { grid-template-columns: 1fr; }
     .panel { padding-top: 36px; }
   }
@@ -447,8 +513,138 @@
         </div>
         <a class="maplink" href="https://maps.google.com/?q=100+Canongate+Rd,+Kingsport,+TN"
            target="_blank" rel="noopener">Open in maps</a>
-        <p class="note">All who knew Benjamin are welcome.</p>
+        <p class="note">
+          All who knew Benjamin are welcome. There is no dress code &mdash;
+          please come as you are.
+        </p>
       </div>
+
+      <section class="program">
+        <p class="eyebrow">Order of Service</p>
+        <h2 class="program-title">Nine Reflections</h2>
+        <p class="program-lede">
+          Nine people, each speaking to one facet of his life. Taken in order,
+          the first letters spell his name.
+        </p>
+
+        <ol class="listing">
+          <li class="bookend">
+            <span class="mark" aria-hidden="true"></span>
+            <div>
+              <h3>Introduction</h3>
+              <p class="who">Al Ewing &middot; Grandfather</p>
+              <p class="gloss">Framing our remembrance of Benjamin</p>
+            </div>
+          </li>
+
+          <li>
+            <span class="mark" aria-hidden="true">B</span>
+            <div>
+              <h3>Board Games</h3>
+              <p class="who">Brady Tomlinson &middot; Friend</p>
+            </div>
+          </li>
+
+          <li>
+            <span class="mark" aria-hidden="true">E</span>
+            <div>
+              <h3>Education</h3>
+              <p class="who">Dr. Holly &middot; 7th-grade math teacher</p>
+            </div>
+          </li>
+
+          <li>
+            <span class="mark" aria-hidden="true">N</span>
+            <div>
+              <h3>Nourishment</h3>
+              <p class="who">Joe Ewing &middot; Uncle</p>
+            </div>
+          </li>
+
+          <li class="interlude">
+            <div>
+              <h3>&ldquo;Gethsemane&rdquo;</h3>
+              <p class="who">Youth Choir</p>
+            </div>
+          </li>
+
+          <li>
+            <span class="mark" aria-hidden="true">J</span>
+            <div>
+              <h3>Journeys</h3>
+              <p class="who">Lucy Hannigan-Ewing &middot; Grandmother</p>
+            </div>
+          </li>
+
+          <li>
+            <span class="mark" aria-hidden="true">A</span>
+            <div>
+              <h3>Athletics</h3>
+              <p class="who">Kathy White &middot; Grandmother</p>
+            </div>
+          </li>
+
+          <li class="interlude">
+            <div>
+              <h3>[Selection]</h3>
+              <p class="who">Brass Duet</p>
+            </div>
+          </li>
+
+          <li>
+            <span class="mark" aria-hidden="true">M</span>
+            <div>
+              <h3>Music</h3>
+              <p class="who">Claire Ewing &middot; Aunt</p>
+            </div>
+          </li>
+
+          <li>
+            <span class="mark" aria-hidden="true">I</span>
+            <div>
+              <h3>Ingenuity</h3>
+              <p class="who">Christopher White &middot; Uncle</p>
+            </div>
+          </li>
+
+          <li class="interlude">
+            <div>
+              <h3>&ldquo;Crowded Table&rdquo;</h3>
+              <p class="who">Select Choir</p>
+            </div>
+          </li>
+
+          <li>
+            <span class="mark" aria-hidden="true">N</span>
+            <div>
+              <h3>Nice</h3>
+              <p class="who">Amy Ewing &middot; Mother</p>
+            </div>
+          </li>
+
+          <li>
+            <span class="mark" aria-hidden="true">II</span>
+            <div>
+              <h3>too&hellip;</h3>
+              <p class="who">Mark Ewing &middot; Father</p>
+            </div>
+          </li>
+
+          <li class="bookend">
+            <span class="mark" aria-hidden="true"></span>
+            <div>
+              <h3>Recapitulation</h3>
+              <p class="who">Gary White &middot; Grandfather</p>
+              <p class="gloss">Drawing our remembrance together</p>
+            </div>
+          </li>
+        </ol>
+
+        <p class="program-lede" style="margin-top: 22px;">
+          Following the service, at about 2:30, everyone is warmly welcome at
+          the Celebration of Life at The Social.
+        </p>
+      </section>
     </section>
 
     <section class="panel" id="celebration" role="tabpanel" aria-labelledby="tab-celebration" tabindex="-1" hidden>
@@ -466,8 +662,50 @@
         </div>
         <a class="maplink" href="https://maps.google.com/?q=The+Social,+240+E+Main+St,+Kingsport,+TN"
            target="_blank" rel="noopener">Open in maps</a>
-        <p class="note">An event for all ages. Come as you are.</p>
+        <p class="note">
+          Everyone is warmly welcome, at any age. There is no dress code &mdash;
+          please come as you are.
+        </p>
       </div>
+
+      <section class="program">
+        <p class="eyebrow">What to Expect</p>
+
+        <ul class="listing plain">
+          <li>
+            <h3>Food</h3>
+            <p>
+              There will be food, including samples of his regular order from
+              The Bagel Exchange.
+            </p>
+          </li>
+
+          <li>
+            <h3>Displays</h3>
+            <p>
+              Photographs, objects, and memories representing the facets of his
+              life reflected on during the service will be up.
+            </p>
+          </li>
+
+          <li>
+            <h3>A card for Benjamin</h3>
+            <p>
+              You are invited to write your personal reflections on a card,
+              either to share with Benjamin&rsquo;s family or to place in a
+              sealed box for just him.
+            </p>
+          </li>
+
+          <li>
+            <h3>Board games</h3>
+            <p>
+              A selection of Benjamin&rsquo;s favorite board games will be out,
+              with friends on hand to teach them and help you get started.
+            </p>
+          </li>
+        </ul>
+      </section>
     </section>
 
   </main>
