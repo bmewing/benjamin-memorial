@@ -189,6 +189,19 @@
   .btn:hover:not(:disabled) { background: var(--pine-deep); }
   .btn:disabled { background: #b3b1a6; border-color: #b3b1a6; cursor: default; }
 
+  .hint {
+    font-family: var(--sans); font-size: .78rem; line-height: 1.6;
+    color: var(--sepia); margin: 9px 0 0; opacity: .9;
+  }
+  .orline {
+    display: flex; align-items: center; gap: 14px; margin: 28px 0 -6px;
+    font-family: var(--sans); font-size: .66rem; font-weight: 600;
+    letter-spacing: .16em; text-transform: uppercase; color: var(--sepia);
+  }
+  .orline::before, .orline::after {
+    content: ""; flex: 1; height: 1px; background: var(--line-soft);
+  }
+
   .queue { margin-top: 22px; }
   .queue:empty { margin-top: 0; }
   .row {
@@ -441,15 +454,17 @@
     <section class="panel" id="photos" role="tabpanel" aria-labelledby="tab-photos" tabindex="-1">
       <p class="panel-intro">
         If you have a photo of Benjamin &mdash; any moment, however small &mdash;
-        his family would love to have it.
+        his family would love to have it. And if you have no photo but something
+        you remember about him, send that instead. Words on their own are just as
+        welcome here.
       </p>
 
       <div class="card">
         <div id="form">
           <div class="drop" id="drop" role="button" tabindex="0"
-               aria-label="Choose photos or videos to add">
+               aria-label="Choose photos or videos to add, if you have any">
             <strong>Choose photos or videos</strong>
-            <span>or drag them here</span>
+            <span>or drag them here &mdash; if you have any</span>
           </div>
           <input type="file" id="picker" multiple accept="image/*,video/*">
 
@@ -458,10 +473,17 @@
             <input type="text" id="uploader" autocomplete="name" placeholder="So we know who to thank">
           </label>
 
+          <p class="orline">or just write</p>
+
           <label class="field" for="note">
-            A memory or note <em>(optional)</em>
-            <textarea id="note" rows="3" placeholder="Where it was taken, what was happening, anything you would like to say"></textarea>
+            A memory, a story, anything you would like to say
+            <textarea id="note" rows="5" maxlength="8000"
+                      placeholder="Where a photo was taken and what was happening &mdash; or simply what you remember about him, if there is no photo"></textarea>
           </label>
+          <p class="hint">
+            No photo needed. Write something here and send it on its own, and it
+            reaches his family exactly the same way.
+          </p>
 
           <div class="queue" id="queue"></div>
           <button class="btn" id="send" disabled>Add to the collection</button>
@@ -469,17 +491,17 @@
 
         <div class="thanks" id="thanks" hidden>
           <p>Thank you. It means a great deal.</p>
-          <button class="linkish" id="again">Add another photo</button>
+          <button class="linkish" id="again">Add something else</button>
         </div>
       </div>
 
       <p class="fineprint">
-        Photos go straight to Benjamin&rsquo;s family. They are not shown on this
-        page and are not public.
+        Photos and messages go straight to Benjamin&rsquo;s family. They are not
+        shown on this page and are not public.
       </p>
 
       <p class="texting">
-        You can also text photos to
+        You can also text a photo, or just a message, to
         <a href="sms:+14238304826">(423)&nbsp;830-4826</a>.
       </p>
     </section>
@@ -792,6 +814,7 @@ const picker = document.getElementById('picker');
 const drop   = document.getElementById('drop');
 const queue  = document.getElementById('queue');
 const send   = document.getElementById('send');
+const note   = document.getElementById('note');
 const form   = document.getElementById('form');
 const thanks = document.getElementById('thanks');
 let files = [];
@@ -818,6 +841,17 @@ function addFiles(list) {
   render();
 }
 
+// The photo is optional and so is the writing, but one of them has to be
+// there. Kept apart from render() so typing does not rebuild the file rows.
+function syncButton() {
+  const written = note.value.trim().length > 0;
+  send.disabled = files.length === 0 && !written;
+  send.textContent = files.length
+    ? 'Add ' + files.length + (files.length === 1 ? ' photo' : ' photos')
+    : written ? 'Send this memory'
+              : 'Add to the collection';
+}
+
 function render() {
   queue.innerHTML = '';
   files.forEach((f, i) => {
@@ -830,11 +864,10 @@ function render() {
     row.querySelector('.nm').textContent = f.name;
     queue.appendChild(row);
   });
-  send.disabled = files.length === 0;
-  send.textContent = files.length
-    ? 'Add ' + files.length + (files.length === 1 ? ' photo' : ' photos')
-    : 'Add to the collection';
+  syncButton();
 }
+
+note.addEventListener('input', syncButton);
 
 // fetch() reports no upload progress, so the photos themselves go up over XHR.
 function putFile(url, file, onProgress) {
@@ -851,11 +884,37 @@ function putFile(url, file, onProgress) {
   });
 }
 
+// Nothing attached, just words. The whole submission fits in one request,
+// so there is no presigned PUT and nothing to show progress for.
+async function sendStory() {
+  send.disabled = true;
+  send.textContent = 'Sending';
+  try {
+    const r = await fetch('/api/story', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        uploader: document.getElementById('uploader').value,
+        note: note.value
+      })
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+  } catch (err) {
+    send.disabled = false;
+    send.textContent = 'Something went wrong. Try again.';
+    return;
+  }
+  form.hidden = true;
+  thanks.hidden = false;
+}
+
 send.addEventListener('click', async () => {
+  if (!files.length) { await sendStory(); return; }
+
   send.disabled = true;
   const payload = {
     uploader: document.getElementById('uploader').value,
-    note: document.getElementById('note').value,
+    note: note.value,
     files: files.map(f => ({name: f.name, type: f.type, size: f.size}))
   };
 
@@ -903,8 +962,8 @@ send.addEventListener('click', async () => {
 
 document.getElementById('again').addEventListener('click', () => {
   files = [];
+  note.value = '';
   render();
-  document.getElementById('note').value = '';
   thanks.hidden = true;
   form.hidden = false;
 });

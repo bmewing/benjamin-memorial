@@ -81,6 +81,33 @@
     border: 1px solid var(--sage); color: var(--sepia);
     padding: 1px 6px; margin-left: 6px;
   }
+  /* A message has no photograph, so the words themselves are the item. The
+     card is deliberately taller and quieter than a photo card -- something to
+     read, not something to scan past. */
+  figure.message { background: #f6f5f0; }
+  .letter {
+    padding: 22px 20px 4px; position: relative;
+    font-size: 1.06rem; line-height: 1.62;
+  }
+  .letter .body { margin: 0; white-space: pre-wrap; }
+  .letter .quiet {
+    font-family: var(--sans); font-size: .62rem; font-weight: 600;
+    letter-spacing: .14em; text-transform: uppercase; color: var(--sage);
+    margin: 0 0 10px;
+  }
+  figure.message figcaption { padding-top: 10px; }
+  figure.message .said { display: none; }
+
+  /* Hurtful words should not be readable at a glance either. */
+  .letter.covered .body { filter: blur(6px); user-select: none; }
+  .cover {
+    position: absolute; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 8px; text-align: center;
+    padding: 16px; background: rgba(232,231,223,.86); cursor: pointer;
+  }
+  .letter.shown .cover { display: none; }
+  .letter.shown .body { filter: none; user-select: auto; }
+
   figure.flagged a.shot { position: relative; }
   figure.flagged img, figure.flagged video { filter: blur(22px); }
   .veil {
@@ -88,12 +115,14 @@
     align-items: center; justify-content: center; gap: 8px; text-align: center;
     padding: 16px; background: rgba(232,231,223,.72);
   }
-  .veil strong {
+  .veil strong, .cover strong {
     font-family: var(--sans); font-size: .68rem; font-weight: 600;
     letter-spacing: .13em; text-transform: uppercase; color: #8a3f32;
   }
-  .veil span { font-family: var(--sans); font-size: .76rem; color: var(--sepia); line-height: 1.5; }
-  .veil em { font-family: var(--sans); font-size: .66rem; font-style: normal;
+  .veil span, .cover span {
+    font-family: var(--sans); font-size: .76rem; color: var(--sepia); line-height: 1.5;
+  }
+  .veil em, .cover em { font-family: var(--sans); font-size: .66rem; font-style: normal;
              letter-spacing: .1em; text-transform: uppercase; color: var(--pine); }
   figure.shown .veil { display: none; }
   figure.shown img, figure.shown video { filter: none; }
@@ -153,6 +182,7 @@
     <button class="filter" id="f-all"  aria-pressed="true">Everything</button>
     <button class="filter" id="f-sms"  aria-pressed="false">Texted</button>
     <button class="filter" id="f-web"  aria-pressed="false">Uploaded</button>
+    <button class="filter" id="f-msg"  aria-pressed="false">Words only</button>
     <button class="filter" id="f-flag" aria-pressed="false">Needs a look</button>
   </div>
 
@@ -194,6 +224,7 @@ function draw() {
   const shown = items.filter(i =>
     filter === 'all'  ? true :
     filter === 'flag' ? flagged(i) :
+    filter === 'msg'  ? i.kind === 'message' :
                         i.source === filter);
   count.textContent = shown.length + (shown.length === 1 ? ' item' : ' items');
   grid.innerHTML = '';
@@ -204,6 +235,41 @@ function draw() {
   for (const i of shown) {
     const fig = document.createElement('figure');
     if (flagged(i)) fig.className = 'flagged';
+
+    // Words with no photo: print them, and cover them first if the screener
+    // was unhappy. There is nothing to link out to, so no anchor at all.
+    if (i.kind === 'message') {
+      fig.classList.add('message');
+      const letter = document.createElement('div');
+      letter.className = flagged(i) ? 'letter covered' : 'letter';
+
+      const label = document.createElement('p');
+      label.className = 'quiet';
+      label.textContent = 'Written';
+      const body = document.createElement('p');
+      body.className = 'body';
+      body.textContent = i.caption;
+      letter.append(label, body);
+
+      if (flagged(i)) {
+        const cover = document.createElement('div');
+        cover.className = 'cover';
+        const strong = document.createElement('strong');
+        strong.textContent = i.concern === 'serious' ? 'Flagged' : 'Worth a look';
+        const why = document.createElement('span');
+        why.textContent = i.review_note || (i.flags || []).join(', ') || 'Unclear.';
+        const em = document.createElement('em');
+        em.textContent = 'Click to read';
+        cover.append(strong, why, em);
+        cover.addEventListener('click', () => letter.classList.add('shown'));
+        letter.appendChild(cover);
+      }
+
+      fig.appendChild(letter);
+      fig.appendChild(caption(i, fig));
+      grid.appendChild(fig);
+      continue;
+    }
 
     const a = document.createElement('a');
     a.className = 'shot';
@@ -240,7 +306,14 @@ function draw() {
     }
 
     fig.appendChild(a);
+    fig.appendChild(caption(i, fig));
+    grid.appendChild(fig);
+  }
+}
 
+// Who sent it, what they said, when, and the keep/remove pair. Shared, so a
+// message is acted on exactly the way a photo is.
+function caption(i, fig) {
     const cap = document.createElement('figcaption');
 
     if (flagged(i) && i.review_note) {
@@ -272,6 +345,12 @@ function draw() {
     tag.className = 'tag';
     tag.textContent = i.source === 'sms' ? 'texted' : 'uploaded';
     meta.appendChild(tag);
+    if (i.kind === 'message') {
+      const only = document.createElement('span');
+      only.className = 'tag';
+      only.textContent = 'no photo';
+      meta.appendChild(only);
+    }
     cap.appendChild(meta);
 
     // Deciding about a photo is a person's job; the screener only sorts the
@@ -319,9 +398,7 @@ function draw() {
     acts.append(keep, del);
     cap.appendChild(acts);
 
-    fig.appendChild(cap);
-    grid.appendChild(fig);
-  }
+    return cap;
 }
 
 async function act(btn, url, item, fig, done) {
@@ -349,10 +426,11 @@ function refreshFlagCount() {
     n ? 'Needs a look · ' + n : 'Needs a look';
 }
 
-for (const [id, val] of [['f-all','all'], ['f-sms','sms'], ['f-web','web'], ['f-flag','flag']]) {
+for (const [id, val] of [['f-all','all'], ['f-sms','sms'], ['f-web','web'],
+                         ['f-msg','msg'], ['f-flag','flag']]) {
   document.getElementById(id).addEventListener('click', () => {
     filter = val;
-    for (const other of ['f-all','f-sms','f-web','f-flag']) {
+    for (const other of ['f-all','f-sms','f-web','f-msg','f-flag']) {
       document.getElementById(other).setAttribute('aria-pressed', String(other === id));
     }
     draw();

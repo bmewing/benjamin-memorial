@@ -1,12 +1,16 @@
-# Benjamin's memorial photo collection
+# Benjamin's memorial collection
 
-One small service that gathers photos of Benjamin into one private
-DigitalOcean Spaces bucket, two ways in:
+One small service that gathers photos of Benjamin, and what people want to say
+about him, into one private DigitalOcean Spaces bucket. Two ways in:
 
 | | |
 |---|---|
-| `/` | The page people visit to upload photos and videos, plus a gallery of what's come in. |
-| `/twilio/sms` | Where Twilio posts picture messages sent to the memorial phone number. |
+| `/` | The page people visit to add photos and videos, or to write a memory with nothing attached. |
+| `/twilio/sms` | Where Twilio posts picture messages, and plain text messages, sent to the memorial phone number. |
+
+Not everyone has a photograph. A memory sent on its own is stored the same way
+and shown in the family's private view as an item in its own right, because
+words that arrive alone are the easiest thing in a system like this to lose.
 
 | | |
 |---|---|
@@ -27,10 +31,16 @@ sms/2026-09-14/15558675309-SM123abc-0.jpg   photo texted in
 sms/2026-09-14/15558675309-SM123abc.json    who sent it + what they wrote
 web/2026-09-14/8dfc5c3b-00-ben-at-lake.jpg  photo uploaded on the site
 web/2026-09-14/8dfc5c3b-about.json          uploader's name + note
+web/2026-09-14/1f2e3d4c-story.json          a memory written with no photo
 ```
 
 Texted photos carry the sender's number and any words they typed as object
 metadata, so a caption is never separated from its picture.
+
+The private view lists a `.json` as an item of its own only when the words are
+the whole submission: a text with no picture attached, a `-story.json`, or an
+`-about.json` whose photos never made it into the bucket. A note that belongs
+to a photo that did arrive stays with that photo instead of being listed twice.
 
 ---
 
@@ -136,7 +146,12 @@ running now and then so the collection isn't only in one place.
 
 ## Notes
 
-- Photos and videos only; up to 512 MB each.
+- Photos and videos only; up to 512 MB each. Written memories cap at 8,000
+  characters.
+- Everything is screened before the family sees it, photos by a vision model
+  and words on their own by the same model on the text alone. Nothing is ever
+  blocked from arriving and nothing is ever deleted -- see the notes at the top
+  of `app/moderation.py`.
 - The gallery does one metadata lookup per photo. Past a few hundred photos
   it'll want a cache or a stored index.
 - `noindex` is set on the page, so it won't turn up in search results.

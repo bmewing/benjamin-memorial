@@ -1,8 +1,11 @@
 """Look at what arrives before Benjamin's family has to.
 
 A public phone number and an open upload form will eventually catch something
-nobody should have to see unprepared. Every photo and message that comes in is
-shown to a vision model first, which writes a small verdict alongside it.
+nobody should have to see unprepared. Every photo and every message that comes
+in is
+shown to a model first, which writes a small verdict alongside it. Words
+that arrive on their own -- a texted story, a memory written on the site with
+no photograph -- are screened the same way, on the writing alone.
 
 Two rules shape everything here:
 
@@ -58,6 +61,14 @@ of a place, an object, a pet, a group of people, or a much younger Benjamin is \
 completely normal and expected. Flag only what a reasonable person would agree \
 his parents should be warned about before seeing.
 
+Some submissions are words alone, with no photograph. Judge the writing by \
+itself, and be even slower to flag: a memory, a story, a prayer, a scripture, \
+an apology, a regret, or a raw expression of grief or anger about what happened \
+is exactly what this is for. Someone telling his family they are struggling too \
+is not a flag. Set subject to "message" for these. Flag only abuse aimed at the \
+family, cruelty about his death, threats, sexual content, or a spam or scam \
+link.
+
 Things Benjamin made and did, which people are sending in and which are \
 precious to his family. None of this is ever spam:
 - Woodturning. He ran a small business called "Ben's Pens" and sold turned \
@@ -74,13 +85,13 @@ with a price on it, is the opposite of spam.
 Reply with JSON only, no prose, in exactly this shape:
 {"concern": "none" | "review" | "serious",
  "flags": [],
- "subject": "benjamin" | "people" | "place_or_object" | "text_or_screenshot" | "unclear",
+ "subject": "benjamin" | "people" | "place_or_object" | "text_or_screenshot" | "message" | "unclear",
  "note": ""}
 
 concern: "none" for anything fine. "review" if you are unsure or it looks like \
 spam. "serious" only for content that is genuinely explicit, hateful, or cruel.
 flags: short lowercase tags, e.g. ["spam"], ["explicit"], ["hateful"]. Empty when concern is none.
-subject: your best guess at what the photo shows. Never a reason to flag.
+subject: your best guess at what was sent. Never a reason to flag.
 note: one short sentence for the family, plain and factual. Empty when concern is none."""
 
 
@@ -117,33 +128,12 @@ def _verdict(concern: str, note: str, **extra) -> dict:
     return out
 
 
-def review(data: bytes, content_type: str, caption: str = "", sender: str = "") -> dict:
-    """Return a verdict for one submission. Never raises."""
-    if not enabled():
-        return _verdict("unreviewed", "Screening is not configured.")
+def _ask(content: list[dict]) -> dict:
+    """Put one message to the model and turn its answer into a verdict.
 
-    if len(data) > MAX_SCAN_BYTES:
-        return _verdict("review", "Too large to screen automatically.",
-                        flags=["unscanned"])
-
-    if not (content_type or "").startswith("image/"):
-        # Video would need frame extraction; say so rather than imply it passed.
-        return _verdict("review", "Video is not screened automatically.",
-                        flags=["unscanned"])
-
-    said = caption.strip()
-    asked = "Here is the submission."
-    if said:
-        asked += f' The sender wrote: "{said}"'
-    if sender:
-        asked += " It arrived by text message." if sender.startswith("+") else ""
-
-    content = _reference_block() + [
-        {"type": "text", "text": asked},
-        {"type": "image_url",
-         "image_url": {"url": f"data:{content_type};base64,{_b64(data)}"}},
-    ]
-
+    Shared by the photo and the words-only paths, so a change to how a reply
+    is read or a failure is described applies to both.
+    """
     try:
         r = httpx.post(
             f"{BASE_URL}/chat/completions",
@@ -188,6 +178,98 @@ def review(data: bytes, content_type: str, caption: str = "", sender: str = "") 
     )
 
 
+def review_text(message: str, sender: str = "") -> dict:
+    """Return a verdict for words that arrived with no photograph.
+
+    Someone who sits down and writes a paragraph about Benjamin has done the
+    most generous thing on offer here, so the bar for flagging is higher than
+    for a photo, not lower -- see the note in SYSTEM.
+    """
+    if not enabled():
+        return _verdict("unreviewed", "Screening is not configured.")
+
+    said = (message or "").strip()
+    if not said:
+        return _verdict("none", "", subject="message")
+
+    asked = "This submission is a written message with no photograph."
+    if sender.startswith("+"):
+        asked += " It arrived by text message."
+    asked += f' It reads:\n\n"{said[:4000]}"'
+
+    return _ask([{"type": "text", "text": asked}])
+
+
+def review(data: bytes, content_type: str, caption: str = "", sender: str = "") -> dict:
+    """Return a verdict for one submission. Never raises."""
+    if not enabled():
+        return _verdict("unreviewed", "Screening is not configured.")
+
+    if len(data) > MAX_SCAN_BYTES:
+        return _verdict("review", "Too large to screen automatically.",
+                        flags=["unscanned"])
+
+    if not (content_type or "").startswith("image/"):
+        # Video would need frame extraction; say so rather than imply it passed.
+        return _verdict("review", "Video is not screened automatically.",
+                        flags=["unscanned"])
+
+    said = caption.strip()
+    asked = "Here is the submission."
+    if said:
+        asked += f' The sender wrote: "{said}"'
+    if sender:
+        asked += " It arrived by text message." if sender.startswith("+") else ""
+
+    return _ask(_reference_block() + [
+        {"type": "text", "text": asked},
+        {"type": "image_url",
+         "image_url": {"url": f"data:{content_type};base64,{_b64(data)}"}},
+    ])
+
+
+def _already_cleared(s3, storage, key: str) -> dict | None:
+    """A person's decision outranks the model's, including on a later sweep."""
+    try:
+        prior = json.loads(s3.get_object(Bucket=storage.BUCKET,
+                                        Key=key + REVIEW_SUFFIX)["Body"].read())
+    except Exception:
+        return None
+    if prior.get("cleared_by_human"):
+        log.info("%s was cleared by a person; not re-screening", key)
+        return prior
+    return None
+
+
+def _store(s3, storage, key: str, verdict: dict) -> dict:
+    verdict["key"] = key
+    try:
+        s3.put_object(
+            Bucket=storage.BUCKET,
+            Key=key + REVIEW_SUFFIX,
+            Body=json.dumps(verdict, indent=2).encode(),
+            ContentType="application/json",
+        )
+    except Exception:
+        log.exception("could not store the verdict for %s", key)
+    log.info("screened %s -> %s %s", key, verdict["concern"], verdict.get("flags") or "")
+    return verdict
+
+
+def review_text_key(storage, key: str, message: str, sender: str = "") -> dict:
+    """Screen a words-only submission and write its verdict beside it.
+
+    The key is the message's own JSON object, so the verdict lands at
+    <key>.review.json exactly as it does for a photo and the private gallery
+    reads both the same way.
+    """
+    s3 = storage.client()
+    prior = _already_cleared(s3, storage, key)
+    if prior:
+        return prior
+    return _store(s3, storage, key, review_text(message, sender))
+
+
 def review_key(storage, key: str, caption: str = "", sender: str = "") -> dict:
     """Screen an object already in the bucket and write its verdict beside it.
 
@@ -205,31 +287,10 @@ def review_key(storage, key: str, caption: str = "", sender: str = "") -> dict:
         return _verdict("unreviewed", "Could not read the file to screen it.",
                         flags=["error"])
 
-    # If a person has already looked at this and said it is fine, leave their
-    # decision alone. A later sweep must not quietly re-flag what they cleared.
-    try:
-        prior = json.loads(s3.get_object(Bucket=storage.BUCKET,
-                                         Key=key + REVIEW_SUFFIX)["Body"].read())
-        if prior.get("cleared_by_human"):
-            log.info("%s was cleared by a person; not re-screening", key)
-            return prior
-    except Exception:
-        pass
+    prior = _already_cleared(s3, storage, key)
+    if prior:
+        return prior
 
-    verdict = review(data, content_type,
-                     caption or meta.get("caption", ""),
-                     sender or meta.get("from", ""))
-    verdict["key"] = key
-
-    try:
-        s3.put_object(
-            Bucket=storage.BUCKET,
-            Key=key + REVIEW_SUFFIX,
-            Body=json.dumps(verdict, indent=2).encode(),
-            ContentType="application/json",
-        )
-    except Exception:
-        log.exception("could not store the verdict for %s", key)
-
-    log.info("screened %s -> %s %s", key, verdict["concern"], verdict.get("flags") or "")
-    return verdict
+    return _store(s3, storage, key, review(data, content_type,
+                                           caption or meta.get("caption", ""),
+                                           sender or meta.get("from", "")))

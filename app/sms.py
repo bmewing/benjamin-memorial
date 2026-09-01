@@ -34,9 +34,11 @@ REPLY = (
     "Thank you for sharing this with us. "
     "It's been added to Benjamin's memorial collection."
 )
+# Someone who writes a paragraph and gets told to send a photo instead has
+# been told their words were not the point. They were.
 REPLY_NO_MEDIA = (
-    "Thank you for your message. If you'd like to add a photo, "
-    "just send it as a picture message to this number."
+    "Thank you for sharing this with us. Your words have been added to "
+    "Benjamin's memorial collection. You can send photos to this number too."
 )
 
 router = APIRouter()
@@ -167,8 +169,9 @@ async def sms(request: Request, background: BackgroundTasks) -> Response:
 
     # Keep the words people sent, whether or not a photo came with them.
     if body_text or saved:
+        message_key = f"{prefix}.json"
         storage.put(
-            f"{prefix}.json",
+            message_key,
             json.dumps(
                 {
                     "from": sender,
@@ -182,5 +185,12 @@ async def sms(request: Request, background: BackgroundTasks) -> Response:
             ).encode(),
             "application/json",
         )
+
+        # Words that arrived with no photo are a submission in their own right
+        # and the family sees them as one, so they get screened like one. With
+        # a photo, the caption is screened alongside the picture instead.
+        if body_text and not saved and moderation.enabled():
+            background.add_task(moderation.review_text_key, storage,
+                                message_key, body_text, sender)
 
     return _twiml(REPLY if saved else REPLY_NO_MEDIA)
